@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منصة المحاسبين - Accounting Social Platform</title>
+    <!-- Supabase Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
             margin: 0;
@@ -370,7 +372,11 @@
     </div>
 
     <script>
-        const API_URL = "https://accounting_api.workers.dev"; // سيتم تحديثه لاحقاً
+        // Supabase Configuration
+        const SUPABASE_URL = "https://qfofvlypuzqjyzvjyzvj.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmb2Z2bHlwdXpxanl6dmp5enZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTU5NTI0MDAsImV4cCI6MjAzMTUzMjQwMH0.your-actual-key-here";
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         let currentUser = null;
 
         // Initialize
@@ -400,23 +406,20 @@
             }
 
             try {
-                const response = await fetch(`${API_URL}/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, username, full_name: fullName })
-                });
+                const { data, error } = await _supabase
+                    .from('users')
+                    .insert([{ email, username, full_name: fullName }])
+                    .select()
+                    .single();
 
-                const data = await response.json();
-                if (response.ok) {
-                    currentUser = data.user;
-                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                    showMessage('authMessage', 'تم إنشاء الحساب بنجاح! جاري تحميل الصفحة...', 'success');
-                    setTimeout(() => showFeed(), 1500);
-                } else {
-                    showMessage('authMessage', data.error || 'حدث خطأ في التسجيل', 'error');
-                }
+                if (error) throw error;
+
+                currentUser = data;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                showMessage('authMessage', 'تم إنشاء الحساب بنجاح! جاري تحميل الصفحة...', 'success');
+                setTimeout(() => showFeed(), 1500);
             } catch (error) {
-                showMessage('authMessage', 'خطأ في الاتصال بالخادم: ' + error.message, 'error');
+                showMessage('authMessage', 'حدث خطأ: ' + error.message, 'error');
             }
         }
 
@@ -429,23 +432,20 @@
             }
 
             try {
-                const response = await fetch(`${API_URL}/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username })
-                });
+                const { data, error } = await _supabase
+                    .from('users')
+                    .select('*')
+                    .eq('username', username)
+                    .single();
 
-                const data = await response.json();
-                if (response.ok) {
-                    currentUser = data.user;
-                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                    showMessage('authMessage', 'تم تسجيل الدخول بنجاح! جاري تحميل الصفحة...', 'success');
-                    setTimeout(() => showFeed(), 1500);
-                } else {
-                    showMessage('authMessage', 'اسم المستخدم غير موجود', 'error');
-                }
+                if (error || !data) throw new Error('اسم المستخدم غير موجود');
+
+                currentUser = data;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                showMessage('authMessage', 'تم تسجيل الدخول بنجاح! جاري تحميل الصفحة...', 'success');
+                setTimeout(() => showFeed(), 1500);
             } catch (error) {
-                showMessage('authMessage', 'خطأ في الاتصال بالخادم: ' + error.message, 'error');
+                showMessage('authMessage', error.message, 'error');
             }
         }
 
@@ -465,42 +465,44 @@
             }
 
             try {
-                const response = await fetch(`${API_URL}/posts`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_id: currentUser.id, content })
-                });
+                const { error } = await _supabase
+                    .from('posts')
+                    .insert([{ user_id: currentUser.id, content }]);
 
-                const data = await response.json();
-                if (response.ok) {
-                    document.getElementById('postContent').value = '';
-                    showMessage('feedMessage', 'تم نشر المنشور بنجاح!', 'success');
-                    setTimeout(() => loadPosts(), 1000);
-                } else {
-                    showMessage('feedMessage', 'حدث خطأ في نشر المنشور', 'error');
-                }
+                if (error) throw error;
+
+                document.getElementById('postContent').value = '';
+                showMessage('feedMessage', 'تم نشر المنشور بنجاح!', 'success');
+                loadPosts();
             } catch (error) {
-                showMessage('feedMessage', 'خطأ في الاتصال بالخادم: ' + error.message, 'error');
+                showMessage('feedMessage', 'حدث خطأ: ' + error.message, 'error');
             }
         }
 
         async function loadPosts() {
             try {
-                const response = await fetch(`${API_URL}/posts`);
-                const posts = await response.json();
+                const { data, error } = await _supabase
+                    .from('posts')
+                    .select(`
+                        *,
+                        users (username, full_name)
+                    `)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
 
                 const postsList = document.getElementById('postsList');
-                if (posts.length === 0) {
+                if (!data || data.length === 0) {
                     postsList.innerHTML = '<div class="empty-state"><p>لا توجد منشورات حتى الآن</p></div>';
                     return;
                 }
 
-                postsList.innerHTML = posts.map(post => `
+                postsList.innerHTML = data.map(post => `
                     <div class="post-card">
                         <div class="post-header">
                             <div>
-                                <div class="post-author">${post.full_name}</div>
-                                <div class="post-username">@${post.username}</div>
+                                <div class="post-author">${post.users.full_name}</div>
+                                <div class="post-username">@${post.users.username}</div>
                             </div>
                             <div class="post-time">${formatTime(post.created_at)}</div>
                         </div>
@@ -545,7 +547,7 @@
         }
 
         function formatTime(timestamp) {
-            const date = new Date(timestamp * 1000);
+            const date = new Date(timestamp);
             const now = new Date();
             const diff = now - date;
             const seconds = Math.floor(diff / 1000);
@@ -566,12 +568,13 @@
             return div.innerHTML;
         }
 
-        // Refresh posts every 10 seconds
-        setInterval(() => {
-            if (currentUser) {
+        // Real-time subscription for new posts
+        _supabase
+            .channel('public:posts')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, payload => {
                 loadPosts();
-            }
-        }, 10000);
+            })
+            .subscribe();
     </script>
 </body>
 </html>
