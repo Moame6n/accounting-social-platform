@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة المحاسبين - Accounting Social Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .auth-section {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input[type="email"],
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        input[type="email"]:focus,
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .feed-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .user-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info h2 {
+            font-size: 18px;
+        }
+
+        .user-info p {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            width: auto;
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .post-form {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .post-form h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .posts-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .post-card {
+            background: #f9f9f9;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .post-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+        }
+
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .post-author {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        .post-username {
+            color: #999;
+            font-size: 12px;
+        }
+
+        .post-time {
+            color: #ccc;
+            font-size: 12px;
+        }
+
+        .post-content {
+            color: #333;
+            line-height: 1.6;
+            margin-bottom: 12px;
+            word-wrap: break-word;
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 10px;
+            padding-top: 12px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .like-btn {
+            flex: 1;
+            background: #f0f0f0;
+            color: #667eea;
+            border: none;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .like-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .like-btn.liked {
+            background: #667eea;
+            color: white;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .auth-section,
+            .feed-section {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .user-info {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+
+            .logout-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Auth Section -->
+        <div class="auth-section" id="authSection">
+            <div class="header">
+                <h1>📊 منصة المحاسبين</h1>
+                <p>شبكة تواصل متخصصة للمحاسبين والخبراء الماليين</p>
+            </div>
+
+            <div id="authMessage"></div>
+
+            <div id="loginForm">
+                <h2 style="text-align: center; color: #333; margin-bottom: 20px; font-size: 18px;">تسجيل الدخول</h2>
+                <div class="form-group">
+                    <label for="loginUsername">اسم المستخدم</label>
+                    <input type="text" id="loginUsername" placeholder="أدخل اسم المستخدم">
+                </div>
+                <button onclick="handleLogin()">دخول</button>
+                <p style="text-align: center; margin-top: 15px; color: #999; font-size: 14px;">
+                    ليس لديك حساب؟ <a href="#" onclick="toggleForms(); return false;" style="color: #667eea; text-decoration: none; font-weight: 600;">إنشاء حساب جديد</a>
+                </p>
+            </div>
+
+            <div id="registerForm" class="hidden">
+                <h2 style="text-align: center; color: #333; margin-bottom: 20px; font-size: 18px;">إنشاء حساب جديد</h2>
+                <div class="form-group">
+                    <label for="registerEmail">البريد الإلكتروني</label>
+                    <input type="email" id="registerEmail" placeholder="أدخل بريدك الإلكتروني">
+                </div>
+                <div class="form-group">
+                    <label for="registerUsername">اسم المستخدم</label>
+                    <input type="text" id="registerUsername" placeholder="اختر اسم مستخدم فريد">
+                </div>
+                <div class="form-group">
+                    <label for="registerFullName">الاسم الكامل</label>
+                    <input type="text" id="registerFullName" placeholder="أدخل اسمك الكامل">
+                </div>
+                <button onclick="handleRegister()">إنشاء الحساب</button>
+                <p style="text-align: center; margin-top: 15px; color: #999; font-size: 14px;">
+                    لديك حساب بالفعل؟ <a href="#" onclick="toggleForms(); return false;" style="color: #667eea; text-decoration: none; font-weight: 600;">تسجيل الدخول</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Feed Section -->
+        <div class="feed-section hidden" id="feedSection">
+            <div class="user-info">
+                <div>
+                    <h2 id="currentUserName"></h2>
+                    <p id="currentUserUsername"></p>
+                </div>
+                <button class="logout-btn" onclick="handleLogout()">تسجيل الخروج</button>
+            </div>
+
+            <div class="post-form">
+                <h3>📝 شارك منشوراً جديداً</h3>
+                <div class="form-group">
+                    <textarea id="postContent" placeholder="ما الذي تود مشاركته مع المحاسبين؟"></textarea>
+                </div>
+                <button onclick="handleCreatePost()">نشر</button>
+            </div>
+
+            <div id="feedMessage"></div>
+
+            <div id="postsList" class="posts-list">
+                <div class="empty-state">
+                    <p>لا توجد منشورات حتى الآن</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://accounting_api.workers.dev"; // سيتم تحديثه لاحقاً
+        let currentUser = null;
+
+        // Initialize
+        window.addEventListener('load', () => {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                showFeed();
+                loadPosts();
+            }
+        });
+
+        function toggleForms() {
+            document.getElementById('loginForm').classList.toggle('hidden');
+            document.getElementById('registerForm').classList.toggle('hidden');
+            document.getElementById('authMessage').innerHTML = '';
+        }
+
+        async function handleRegister() {
+            const email = document.getElementById('registerEmail').value.trim();
+            const username = document.getElementById('registerUsername').value.trim();
+            const fullName = document.getElementById('registerFullName').value.trim();
+
+            if (!email || !username || !fullName) {
+                showMessage('authMessage', 'يرجى ملء جميع الحقول', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, username, full_name: fullName })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    currentUser = data.user;
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    showMessage('authMessage', 'تم إنشاء الحساب بنجاح! جاري تحميل الصفحة...', 'success');
+                    setTimeout(() => showFeed(), 1500);
+                } else {
+                    showMessage('authMessage', data.error || 'حدث خطأ في التسجيل', 'error');
+                }
+            } catch (error) {
+                showMessage('authMessage', 'خطأ في الاتصال بالخادم: ' + error.message, 'error');
+            }
+        }
+
+        async function handleLogin() {
+            const username = document.getElementById('loginUsername').value.trim();
+
+            if (!username) {
+                showMessage('authMessage', 'يرجى إدخال اسم المستخدم', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    currentUser = data.user;
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    showMessage('authMessage', 'تم تسجيل الدخول بنجاح! جاري تحميل الصفحة...', 'success');
+                    setTimeout(() => showFeed(), 1500);
+                } else {
+                    showMessage('authMessage', 'اسم المستخدم غير موجود', 'error');
+                }
+            } catch (error) {
+                showMessage('authMessage', 'خطأ في الاتصال بالخادم: ' + error.message, 'error');
+            }
+        }
+
+        function showFeed() {
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('feedSection').classList.remove('hidden');
+            document.getElementById('currentUserName').textContent = currentUser.full_name;
+            document.getElementById('currentUserUsername').textContent = `@${currentUser.username}`;
+        }
+
+        async function handleCreatePost() {
+            const content = document.getElementById('postContent').value.trim();
+
+            if (!content) {
+                showMessage('feedMessage', 'يرجى كتابة محتوى المنشور', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/posts`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: currentUser.id, content })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    document.getElementById('postContent').value = '';
+                    showMessage('feedMessage', 'تم نشر المنشور بنجاح!', 'success');
+                    setTimeout(() => loadPosts(), 1000);
+                } else {
+                    showMessage('feedMessage', 'حدث خطأ في نشر المنشور', 'error');
+                }
+            } catch (error) {
+                showMessage('feedMessage', 'خطأ في الاتصال بالخادم: ' + error.message, 'error');
+            }
+        }
+
+        async function loadPosts() {
+            try {
+                const response = await fetch(`${API_URL}/posts`);
+                const posts = await response.json();
+
+                const postsList = document.getElementById('postsList');
+                if (posts.length === 0) {
+                    postsList.innerHTML = '<div class="empty-state"><p>لا توجد منشورات حتى الآن</p></div>';
+                    return;
+                }
+
+                postsList.innerHTML = posts.map(post => `
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div>
+                                <div class="post-author">${post.full_name}</div>
+                                <div class="post-username">@${post.username}</div>
+                            </div>
+                            <div class="post-time">${formatTime(post.created_at)}</div>
+                        </div>
+                        <div class="post-content">${escapeHtml(post.content)}</div>
+                        <div class="post-actions">
+                            <button class="like-btn" onclick="toggleLike(this, '${post.id}')">❤️ إعجاب</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading posts:', error);
+            }
+        }
+
+        function toggleLike(button, postId) {
+            button.classList.toggle('liked');
+            button.textContent = button.classList.contains('liked') ? '❤️ معجب' : '❤️ إعجاب';
+        }
+
+        function handleLogout() {
+            if (confirm('هل تريد تسجيل الخروج؟')) {
+                currentUser = null;
+                localStorage.removeItem('currentUser');
+                document.getElementById('feedSection').classList.add('hidden');
+                document.getElementById('authSection').classList.remove('hidden');
+                document.getElementById('loginForm').classList.remove('hidden');
+                document.getElementById('registerForm').classList.add('hidden');
+                document.getElementById('authMessage').innerHTML = '';
+                document.getElementById('loginUsername').value = '';
+                document.getElementById('registerEmail').value = '';
+                document.getElementById('registerUsername').value = '';
+                document.getElementById('registerFullName').value = '';
+            }
+        }
+
+        function showMessage(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="message ${type}">${message}</div>`;
+            setTimeout(() => {
+                element.innerHTML = '';
+            }, 5000);
+        }
+
+        function formatTime(timestamp) {
+            const date = new Date(timestamp * 1000);
+            const now = new Date();
+            const diff = now - date;
+            const seconds = Math.floor(diff / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+
+            if (seconds < 60) return 'الآن';
+            if (minutes < 60) return `منذ ${minutes} دقيقة`;
+            if (hours < 24) return `منذ ${hours} ساعة`;
+            if (days < 7) return `منذ ${days} يوم`;
+            return date.toLocaleDateString('ar-SA');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Refresh posts every 10 seconds
+        setInterval(() => {
+            if (currentUser) {
+                loadPosts();
+            }
+        }, 10000);
+    </script>
+</body>
+</html>
