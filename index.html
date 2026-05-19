@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منصة المحاسبين - Accounting Social Platform</title>
-    <!-- Supabase Client Library -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
             margin: 0;
@@ -372,10 +370,21 @@
     </div>
 
     <script>
-        // Supabase Configuration
-        const SUPABASE_URL = "https://qfofvlypuzqjyzvjyzvj.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmb2Z2bHlwdXpxanl6dmp5enZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTU5NTI0MDAsImV4cCI6MjAzMTUzMjQwMH0.X-Z8-X8-X8-X8-X8-X8-X8-X8-X8-X8-X8-X8";
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // Local Storage Database Simulation
+        const db = {
+            getUsers: () => JSON.parse(localStorage.getItem('acc_users') || '[]'),
+            saveUser: (user) => {
+                const users = db.getUsers();
+                users.push(user);
+                localStorage.setItem('acc_users', JSON.stringify(users));
+            },
+            getPosts: () => JSON.parse(localStorage.getItem('acc_posts') || '[]'),
+            savePost: (post) => {
+                const posts = db.getPosts();
+                posts.unshift(post);
+                localStorage.setItem('acc_posts', JSON.stringify(posts));
+            }
+        };
 
         let currentUser = null;
 
@@ -387,6 +396,17 @@
                 showFeed();
                 loadPosts();
             }
+            
+            // Add initial welcome post if empty
+            if (db.getPosts().length === 0) {
+                db.savePost({
+                    id: Date.now(),
+                    author: 'إدارة المنصة',
+                    username: 'admin',
+                    content: 'أهلاً بكم في منصة المحاسبين! يسعدنا انضمامكم إلينا لمشاركة الخبرات والمعرفة المالية.',
+                    created_at: new Date().toISOString()
+                });
+            }
         });
 
         function toggleForms() {
@@ -395,7 +415,7 @@
             document.getElementById('authMessage').innerHTML = '';
         }
 
-        async function handleRegister() {
+        function handleRegister() {
             const email = document.getElementById('registerEmail').value.trim();
             const username = document.getElementById('registerUsername').value.trim();
             const fullName = document.getElementById('registerFullName').value.trim();
@@ -405,25 +425,22 @@
                 return;
             }
 
-            try {
-                const { data, error } = await _supabase
-                    .from('users')
-                    .insert([{ email, username, full_name: fullName }])
-                    .select()
-                    .single();
-
-                if (error) throw error;
-
-                currentUser = data;
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                showMessage('authMessage', 'تم إنشاء الحساب بنجاح! جاري تحميل الصفحة...', 'success');
-                setTimeout(() => showFeed(), 1500);
-            } catch (error) {
-                showMessage('authMessage', 'حدث خطأ: ' + error.message, 'error');
+            const users = db.getUsers();
+            if (users.find(u => u.username === username)) {
+                showMessage('authMessage', 'اسم المستخدم موجود مسبقاً', 'error');
+                return;
             }
+
+            const newUser = { id: Date.now(), email, username, fullName };
+            db.saveUser(newUser);
+            
+            currentUser = newUser;
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            showMessage('authMessage', 'تم إنشاء الحساب بنجاح!', 'success');
+            setTimeout(() => showFeed(), 1000);
         }
 
-        async function handleLogin() {
+        function handleLogin() {
             const username = document.getElementById('loginUsername').value.trim();
 
             if (!username) {
@@ -431,32 +448,29 @@
                 return;
             }
 
-            try {
-                const { data, error } = await _supabase
-                    .from('users')
-                    .select('*')
-                    .eq('username', username)
-                    .single();
+            const users = db.getUsers();
+            const user = users.find(u => u.username === username);
 
-                if (error || !data) throw new Error('اسم المستخدم غير موجود');
-
-                currentUser = data;
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                showMessage('authMessage', 'تم تسجيل الدخول بنجاح! جاري تحميل الصفحة...', 'success');
-                setTimeout(() => showFeed(), 1500);
-            } catch (error) {
-                showMessage('authMessage', error.message, 'error');
+            if (!user && username !== 'admin') {
+                showMessage('authMessage', 'اسم المستخدم غير موجود', 'error');
+                return;
             }
+
+            currentUser = user || { id: 0, username: 'admin', fullName: 'إدارة المنصة' };
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            showMessage('authMessage', 'تم تسجيل الدخول بنجاح!', 'success');
+            setTimeout(() => showFeed(), 1000);
         }
 
         function showFeed() {
             document.getElementById('authSection').classList.add('hidden');
             document.getElementById('feedSection').classList.remove('hidden');
-            document.getElementById('currentUserName').textContent = currentUser.full_name;
+            document.getElementById('currentUserName').textContent = currentUser.fullName;
             document.getElementById('currentUserUsername').textContent = `@${currentUser.username}`;
+            loadPosts();
         }
 
-        async function handleCreatePost() {
+        function handleCreatePost() {
             const content = document.getElementById('postContent').value.trim();
 
             if (!content) {
@@ -464,60 +478,47 @@
                 return;
             }
 
-            try {
-                const { error } = await _supabase
-                    .from('posts')
-                    .insert([{ user_id: currentUser.id, content }]);
+            const newPost = {
+                id: Date.now(),
+                author: currentUser.fullName,
+                username: currentUser.username,
+                content: content,
+                created_at: new Date().toISOString()
+            };
 
-                if (error) throw error;
-
-                document.getElementById('postContent').value = '';
-                showMessage('feedMessage', 'تم نشر المنشور بنجاح!', 'success');
-                loadPosts();
-            } catch (error) {
-                showMessage('feedMessage', 'حدث خطأ: ' + error.message, 'error');
-            }
+            db.savePost(newPost);
+            document.getElementById('postContent').value = '';
+            showMessage('feedMessage', 'تم النشر بنجاح!', 'success');
+            loadPosts();
         }
 
-        async function loadPosts() {
-            try {
-                const { data, error } = await _supabase
-                    .from('posts')
-                    .select(`
-                        *,
-                        users (username, full_name)
-                    `)
-                    .order('created_at', { ascending: false });
+        function loadPosts() {
+            const posts = db.getPosts();
+            const postsList = document.getElementById('postsList');
+            
+            if (posts.length === 0) {
+                postsList.innerHTML = '<div class="empty-state"><p>لا توجد منشورات حتى الآن</p></div>';
+                return;
+            }
 
-                if (error) throw error;
-
-                const postsList = document.getElementById('postsList');
-                if (!data || data.length === 0) {
-                    postsList.innerHTML = '<div class="empty-state"><p>لا توجد منشورات حتى الآن</p></div>';
-                    return;
-                }
-
-                postsList.innerHTML = data.map(post => `
-                    <div class="post-card">
-                        <div class="post-header">
-                            <div>
-                                <div class="post-author">${post.users.full_name}</div>
-                                <div class="post-username">@${post.users.username}</div>
-                            </div>
-                            <div class="post-time">${formatTime(post.created_at)}</div>
+            postsList.innerHTML = posts.map(post => `
+                <div class="post-card">
+                    <div class="post-header">
+                        <div>
+                            <div class="post-author">${post.author}</div>
+                            <div class="post-username">@${post.username}</div>
                         </div>
-                        <div class="post-content">${escapeHtml(post.content)}</div>
-                        <div class="post-actions">
-                            <button class="like-btn" onclick="toggleLike(this, '${post.id}')">❤️ إعجاب</button>
-                        </div>
+                        <div class="post-time">${formatTime(post.created_at)}</div>
                     </div>
-                `).join('');
-            } catch (error) {
-                console.error('Error loading posts:', error);
-            }
+                    <div class="post-content">${escapeHtml(post.content)}</div>
+                    <div class="post-actions">
+                        <button class="like-btn" onclick="toggleLike(this)">❤️ إعجاب</button>
+                    </div>
+                </div>
+            `).join('');
         }
 
-        function toggleLike(button, postId) {
+        function toggleLike(button) {
             button.classList.toggle('liked');
             button.textContent = button.classList.contains('liked') ? '❤️ معجب' : '❤️ إعجاب';
         }
@@ -526,15 +527,7 @@
             if (confirm('هل تريد تسجيل الخروج؟')) {
                 currentUser = null;
                 localStorage.removeItem('currentUser');
-                document.getElementById('feedSection').classList.add('hidden');
-                document.getElementById('authSection').classList.remove('hidden');
-                document.getElementById('loginForm').classList.remove('hidden');
-                document.getElementById('registerForm').classList.add('hidden');
-                document.getElementById('authMessage').innerHTML = '';
-                document.getElementById('loginUsername').value = '';
-                document.getElementById('registerEmail').value = '';
-                document.getElementById('registerUsername').value = '';
-                document.getElementById('registerFullName').value = '';
+                location.reload();
             }
         }
 
@@ -543,7 +536,7 @@
             element.innerHTML = `<div class="message ${type}">${message}</div>`;
             setTimeout(() => {
                 element.innerHTML = '';
-            }, 5000);
+            }, 3000);
         }
 
         function formatTime(timestamp) {
@@ -553,12 +546,10 @@
             const seconds = Math.floor(diff / 1000);
             const minutes = Math.floor(seconds / 60);
             const hours = Math.floor(minutes / 60);
-            const days = Math.floor(hours / 24);
 
             if (seconds < 60) return 'الآن';
             if (minutes < 60) return `منذ ${minutes} دقيقة`;
             if (hours < 24) return `منذ ${hours} ساعة`;
-            if (days < 7) return `منذ ${days} يوم`;
             return date.toLocaleDateString('ar-SA');
         }
 
@@ -567,14 +558,6 @@
             div.textContent = text;
             return div.innerHTML;
         }
-
-        // Real-time subscription for new posts
-        _supabase
-            .channel('public:posts')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, payload => {
-                loadPosts();
-            })
-            .subscribe();
     </script>
 </body>
 </html>
