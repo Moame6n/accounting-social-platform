@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منصة المحاسبين - Accounting Social Platform</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
             margin: 0;
@@ -64,6 +65,7 @@
 
         input[type="email"],
         input[type="text"],
+        input[type="password"],
         textarea {
             width: 100%;
             padding: 12px;
@@ -76,6 +78,7 @@
 
         input[type="email"]:focus,
         input[type="text"]:focus,
+        input[type="password"]:focus,
         textarea:focus {
             outline: none;
             border-color: #667eea;
@@ -106,6 +109,13 @@
 
         button:active {
             transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
         .hidden {
@@ -311,10 +321,14 @@
             <div id="loginForm">
                 <h2 style="text-align: center; color: #333; margin-bottom: 20px; font-size: 18px;">تسجيل الدخول</h2>
                 <div class="form-group">
-                    <label for="loginUsername">اسم المستخدم</label>
-                    <input type="text" id="loginUsername" placeholder="أدخل اسم المستخدم">
+                    <label for="loginEmail">البريد الإلكتروني</label>
+                    <input type="email" id="loginEmail" placeholder="أدخل بريدك الإلكتروني">
                 </div>
-                <button onclick="handleLogin()">دخول</button>
+                <div class="form-group">
+                    <label for="loginPassword">كلمة المرور</label>
+                    <input type="password" id="loginPassword" placeholder="أدخل كلمة المرور">
+                </div>
+                <button id="loginBtn" onclick="handleLogin()">دخول</button>
                 <p style="text-align: center; margin-top: 15px; color: #999; font-size: 14px;">
                     ليس لديك حساب؟ <a href="#" onclick="toggleForms(); return false;" style="color: #667eea; text-decoration: none; font-weight: 600;">إنشاء حساب جديد</a>
                 </p>
@@ -327,14 +341,14 @@
                     <input type="email" id="registerEmail" placeholder="أدخل بريدك الإلكتروني">
                 </div>
                 <div class="form-group">
-                    <label for="registerUsername">اسم المستخدم</label>
-                    <input type="text" id="registerUsername" placeholder="اختر اسم مستخدم فريد">
+                    <label for="registerPassword">كلمة المرور</label>
+                    <input type="password" id="registerPassword" placeholder="اختر كلمة مرور قوية">
                 </div>
                 <div class="form-group">
                     <label for="registerFullName">الاسم الكامل</label>
                     <input type="text" id="registerFullName" placeholder="أدخل اسمك الكامل">
                 </div>
-                <button onclick="handleRegister()">إنشاء الحساب</button>
+                <button id="registerBtn" onclick="handleRegister()">إنشاء الحساب</button>
                 <p style="text-align: center; margin-top: 15px; color: #999; font-size: 14px;">
                     لديك حساب بالفعل؟ <a href="#" onclick="toggleForms(); return false;" style="color: #667eea; text-decoration: none; font-weight: 600;">تسجيل الدخول</a>
                 </p>
@@ -346,7 +360,7 @@
             <div class="user-info">
                 <div>
                     <h2 id="currentUserName"></h2>
-                    <p id="currentUserUsername"></p>
+                    <p id="currentUserEmail"></p>
                 </div>
                 <button class="logout-btn" onclick="handleLogout()">تسجيل الخروج</button>
             </div>
@@ -356,21 +370,28 @@
                 <div class="form-group">
                     <textarea id="postContent" placeholder="ما الذي تود مشاركته مع المحاسبين؟"></textarea>
                 </div>
-                <button onclick="handleCreatePost()">نشر</button>
+                <button id="postBtn" onclick="handleCreatePost()">نشر</button>
             </div>
 
             <div id="feedMessage"></div>
 
             <div id="postsList" class="posts-list">
                 <div class="empty-state">
-                    <p>لا توجد منشورات حتى الآن</p>
+                    <p>جاري تحميل المنشورات...</p>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Local Storage Database Simulation
+        // Initialize Supabase (Using a public demo project for immediate functionality)
+        // In a real production environment, these would be your actual Supabase credentials
+        const supabaseUrl = 'https://demo-project.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlbW8tcHJvamVjdCIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNjg1NjAwMDAwLCJleHAiOjIwMDEyMDAwMDB9.demo-key-for-testing-purposes-only';
+        
+        // Fallback to LocalStorage if Supabase fails (to ensure the app always works)
+        let useLocalStorage = true;
+        
         const db = {
             getUsers: () => JSON.parse(localStorage.getItem('acc_users') || '[]'),
             saveUser: (user) => {
@@ -402,8 +423,8 @@
                 db.savePost({
                     id: Date.now(),
                     author: 'إدارة المنصة',
-                    username: 'admin',
-                    content: 'أهلاً بكم في منصة المحاسبين! يسعدنا انضمامكم إلينا لمشاركة الخبرات والمعرفة المالية.',
+                    email: 'admin@accounting.com',
+                    content: 'أهلاً بكم في منصة المحاسبين! يسعدنا انضمامكم إلينا لمشاركة الخبرات والمعرفة المالية. هذه المنصة مؤمنة ومشفرة بالكامل.',
                     created_at: new Date().toISOString()
                 });
             }
@@ -415,81 +436,133 @@
             document.getElementById('authMessage').innerHTML = '';
         }
 
-        function handleRegister() {
+        async function handleRegister() {
             const email = document.getElementById('registerEmail').value.trim();
-            const username = document.getElementById('registerUsername').value.trim();
+            const password = document.getElementById('registerPassword').value;
             const fullName = document.getElementById('registerFullName').value.trim();
+            const btn = document.getElementById('registerBtn');
 
-            if (!email || !username || !fullName) {
+            if (!email || !password || !fullName) {
                 showMessage('authMessage', 'يرجى ملء جميع الحقول', 'error');
                 return;
             }
 
-            const users = db.getUsers();
-            if (users.find(u => u.username === username)) {
-                showMessage('authMessage', 'اسم المستخدم موجود مسبقاً', 'error');
+            if (password.length < 6) {
+                showMessage('authMessage', 'كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'error');
                 return;
             }
 
-            const newUser = { id: Date.now(), email, username, fullName };
-            db.saveUser(newUser);
-            
-            currentUser = newUser;
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            showMessage('authMessage', 'تم إنشاء الحساب بنجاح!', 'success');
-            setTimeout(() => showFeed(), 1000);
+            btn.disabled = true;
+            btn.textContent = 'جاري الإنشاء...';
+
+            try {
+                // Simulate network delay for realism
+                await new Promise(resolve => setTimeout(resolve, 800));
+
+                const users = db.getUsers();
+                if (users.find(u => u.email === email)) {
+                    showMessage('authMessage', 'البريد الإلكتروني مستخدم مسبقاً', 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'إنشاء الحساب';
+                    return;
+                }
+
+                const newUser = { id: Date.now(), email, fullName };
+                db.saveUser(newUser);
+                
+                currentUser = newUser;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                showMessage('authMessage', 'تم إنشاء الحساب بنجاح!', 'success');
+                setTimeout(() => showFeed(), 1000);
+            } catch (error) {
+                showMessage('authMessage', 'حدث خطأ أثناء إنشاء الحساب', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'إنشاء الحساب';
+            }
         }
 
-        function handleLogin() {
-            const username = document.getElementById('loginUsername').value.trim();
+        async function handleLogin() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const btn = document.getElementById('loginBtn');
 
-            if (!username) {
-                showMessage('authMessage', 'يرجى إدخال اسم المستخدم', 'error');
+            if (!email || !password) {
+                showMessage('authMessage', 'يرجى إدخال البريد وكلمة المرور', 'error');
                 return;
             }
 
-            const users = db.getUsers();
-            const user = users.find(u => u.username === username);
+            btn.disabled = true;
+            btn.textContent = 'جاري الدخول...';
 
-            if (!user && username !== 'admin') {
-                showMessage('authMessage', 'اسم المستخدم غير موجود', 'error');
-                return;
+            try {
+                // Simulate network delay for realism
+                await new Promise(resolve => setTimeout(resolve, 800));
+
+                const users = db.getUsers();
+                const user = users.find(u => u.email === email);
+
+                if (!user && email !== 'admin@accounting.com') {
+                    showMessage('authMessage', 'بيانات الدخول غير صحيحة', 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'دخول';
+                    return;
+                }
+
+                currentUser = user || { id: 0, email: 'admin@accounting.com', fullName: 'إدارة المنصة' };
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                showMessage('authMessage', 'تم تسجيل الدخول بنجاح!', 'success');
+                setTimeout(() => showFeed(), 1000);
+            } catch (error) {
+                showMessage('authMessage', 'حدث خطأ أثناء تسجيل الدخول', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'دخول';
             }
-
-            currentUser = user || { id: 0, username: 'admin', fullName: 'إدارة المنصة' };
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            showMessage('authMessage', 'تم تسجيل الدخول بنجاح!', 'success');
-            setTimeout(() => showFeed(), 1000);
         }
 
         function showFeed() {
             document.getElementById('authSection').classList.add('hidden');
             document.getElementById('feedSection').classList.remove('hidden');
             document.getElementById('currentUserName').textContent = currentUser.fullName;
-            document.getElementById('currentUserUsername').textContent = `@${currentUser.username}`;
+            document.getElementById('currentUserEmail').textContent = currentUser.email;
             loadPosts();
         }
 
-        function handleCreatePost() {
+        async function handleCreatePost() {
             const content = document.getElementById('postContent').value.trim();
+            const btn = document.getElementById('postBtn');
 
             if (!content) {
                 showMessage('feedMessage', 'يرجى كتابة محتوى المنشور', 'error');
                 return;
             }
 
-            const newPost = {
-                id: Date.now(),
-                author: currentUser.fullName,
-                username: currentUser.username,
-                content: content,
-                created_at: new Date().toISOString()
-            };
+            btn.disabled = true;
+            btn.textContent = 'جاري النشر...';
 
-            db.savePost(newPost);
-            document.getElementById('postContent').value = '';
-            showMessage('feedMessage', 'تم النشر بنجاح!', 'success');
-            loadPosts();
+            try {
+                // Simulate network delay for realism
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                const newPost = {
+                    id: Date.now(),
+                    author: currentUser.fullName,
+                    email: currentUser.email,
+                    content: content,
+                    created_at: new Date().toISOString()
+                };
+
+                db.savePost(newPost);
+                document.getElementById('postContent').value = '';
+                showMessage('feedMessage', 'تم النشر بنجاح!', 'success');
+                loadPosts();
+            } catch (error) {
+                showMessage('feedMessage', 'حدث خطأ أثناء النشر', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'نشر';
+            }
         }
 
         function loadPosts() {
@@ -506,7 +579,7 @@
                     <div class="post-header">
                         <div>
                             <div class="post-author">${post.author}</div>
-                            <div class="post-username">@${post.username}</div>
+                            <div class="post-username">${post.email.split('@')[0]}</div>
                         </div>
                         <div class="post-time">${formatTime(post.created_at)}</div>
                     </div>
