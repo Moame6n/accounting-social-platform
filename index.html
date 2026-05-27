@@ -3,259 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة المحاسبين - Accounting Social Platform</title>
+    <title>منصة المحاسبين - شبكة تواصل احترافية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            font-family: 'Cairo', sans-serif;
+            background-color: #f0f2f5;
         }
 
-        .container {
-            width: 100%;
-            max-width: 600px;
-        }
-
-        .auth-section {
-            background: white;
-            border-radius: 15px;
-            padding: 40px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            margin-bottom: 20px;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            color: #667eea;
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            color: #999;
-            font-size: 14px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 500;
-            font-size: 14px;
-        }
-
-        input[type="email"],
-        input[type="text"],
-        input[type="password"],
-        textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            font-family: inherit;
-            transition: border-color 0.3s;
-        }
-
-        input[type="email"]:focus,
-        input[type="text"]:focus,
-        input[type="password"]:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .feed-section {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-        }
-
-        .user-info {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .user-info h2 {
-            font-size: 18px;
-        }
-
-        .user-info p {
-            font-size: 12px;
-            opacity: 0.9;
-        }
-
-        .logout-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid white;
-            color: white;
-            width: auto;
-            padding: 8px 16px;
-            font-size: 12px;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .post-form {
-            background: #f9f9f9;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            border: 2px solid #e0e0e0;
-        }
-
-        .post-form h3 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 16px;
-        }
-
-        .posts-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+        .sidebar {
+            width: 280px;
+            min-width: 280px;
         }
 
         .post-card {
-            background: #f9f9f9;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            padding: 20px;
-            transition: all 0.3s;
+            transition: transform 0.2s ease-in-out;
         }
 
         .post-card:hover {
-            border-color: #667eea;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+            transform: translateY(-3px);
         }
 
-        .post-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
+        .category-item {
+            transition: background-color 0.2s ease-in-out;
         }
 
-        .post-author {
-            font-weight: 600;
+        .category-item:hover {
+            background-color: #e0e7ff;
+        }
+
+        .profile-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-outline {
+            border: 2px solid #667eea;
             color: #667eea;
-            font-size: 16px;
+            transition: background-color 0.2s, color 0.2s;
         }
 
-        .post-username {
-            color: #999;
-            font-size: 12px;
-        }
-
-        .post-time {
-            color: #ccc;
-            font-size: 12px;
-        }
-
-        .post-content {
-            color: #333;
-            line-height: 1.6;
-            margin-bottom: 12px;
-            word-wrap: break-word;
-        }
-
-        .post-actions {
-            display: flex;
-            gap: 10px;
-            padding-top: 12px;
-            border-top: 1px solid #e0e0e0;
-        }
-
-        .like-btn {
-            flex: 1;
-            background: #f0f0f0;
-            color: #667eea;
-            border: none;
-            padding: 8px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.3s;
-        }
-
-        .like-btn:hover {
-            background: #667eea;
-            color: white;
-        }
-
-        .like-btn.liked {
-            background: #667eea;
+        .btn-outline:hover {
+            background-color: #667eea;
             color: white;
         }
 
         .message {
-            padding: 15px;
+            padding: 12px;
             border-radius: 8px;
             margin-bottom: 15px;
             text-align: center;
@@ -263,172 +70,162 @@
         }
 
         .message.success {
-            background: #d4edda;
+            background-color: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
         }
 
         .message.error {
-            background: #f8d7da;
+            background-color: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
-
-        .empty-state {
-            text-align: center;
-            color: #999;
-            padding: 40px 20px;
-        }
-
-        .empty-state p {
-            font-size: 16px;
-            margin-bottom: 10px;
-        }
-
-        @media (max-width: 600px) {
-            .auth-section,
-            .feed-section {
-                padding: 20px;
-            }
-
-            .header h1 {
-                font-size: 24px;
-            }
-
-            .user-info {
-                flex-direction: column;
-                text-align: center;
-                gap: 10px;
-            }
-
-            .logout-btn {
-                width: 100%;
-            }
-        }
     </style>
 </head>
-<body>
-    <div class="container">
-        <!-- Auth Section -->
-        <div class="auth-section" id="authSection">
-            <div class="header">
-                <h1>📊 منصة المحاسبين</h1>
-                <p>شبكة تواصل متخصصة للمحاسبين والخبراء الماليين</p>
-            </div>
+<body class="flex h-screen overflow-hidden">
 
-            <div id="authMessage"></div>
+    <!-- Auth Modal -->
+    <div id="authModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md mx-4">
+            <h2 class="text-3xl font-bold text-center text-purple-700 mb-6">منصة المحاسبين</h2>
+            <p class="text-center text-gray-600 mb-8">شبكة تواصل احترافية للمحاسبين والخبراء الماليين</p>
 
+            <div id="authMessage" class="mb-4"></div>
+
+            <!-- Login Form -->
             <div id="loginForm">
-                <h2 style="text-align: center; color: #333; margin-bottom: 20px; font-size: 18px;">تسجيل الدخول</h2>
-                <div class="form-group">
-                    <label for="loginEmail">البريد الإلكتروني</label>
-                    <input type="email" id="loginEmail" placeholder="أدخل بريدك الإلكتروني">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">تسجيل الدخول</h3>
+                <div class="mb-4">
+                    <label for="loginEmail" class="block text-gray-700 text-sm font-bold mb-2">البريد الإلكتروني:</label>
+                    <input type="email" id="loginEmail" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="ادخل بريدك الإلكتروني">
                 </div>
-                <div class="form-group">
-                    <label for="loginPassword">كلمة المرور</label>
-                    <input type="password" id="loginPassword" placeholder="أدخل كلمة المرور">
+                <div class="mb-6">
+                    <label for="loginPassword" class="block text-gray-700 text-sm font-bold mb-2">كلمة المرور:</label>
+                    <input type="password" id="loginPassword" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="ادخل كلمة المرور">
                 </div>
-                <button id="loginBtn" onclick="handleLogin()">دخول</button>
-                <p style="text-align: center; margin-top: 15px; color: #999; font-size: 14px;">
-                    ليس لديك حساب؟ <a href="#" onclick="toggleForms(); return false;" style="color: #667eea; text-decoration: none; font-weight: 600;">إنشاء حساب جديد</a>
+                <button onclick="handleLogin()" class="btn-primary text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">دخول</button>
+                <p class="text-center text-gray-600 text-sm mt-4">
+                    ليس لديك حساب؟ <a href="#" onclick="toggleForms()" class="text-purple-600 hover:text-purple-800 font-bold">إنشاء حساب جديد</a>
                 </p>
             </div>
 
+            <!-- Register Form -->
             <div id="registerForm" class="hidden">
-                <h2 style="text-align: center; color: #333; margin-bottom: 20px; font-size: 18px;">إنشاء حساب جديد</h2>
-                <div class="form-group">
-                    <label for="registerEmail">البريد الإلكتروني</label>
-                    <input type="email" id="registerEmail" placeholder="أدخل بريدك الإلكتروني">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">إنشاء حساب جديد</h3>
+                <div class="mb-4">
+                    <label for="registerEmail" class="block text-gray-700 text-sm font-bold mb-2">البريد الإلكتروني:</label>
+                    <input type="email" id="registerEmail" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="ادخل بريدك الإلكتروني">
                 </div>
-                <div class="form-group">
-                    <label for="registerPassword">كلمة المرور</label>
-                    <input type="password" id="registerPassword" placeholder="اختر كلمة مرور قوية">
+                <div class="mb-4">
+                    <label for="registerPassword" class="block text-gray-700 text-sm font-bold mb-2">كلمة المرور:</label>
+                    <input type="password" id="registerPassword" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="اختر كلمة مرور قوية">
                 </div>
-                <div class="form-group">
-                    <label for="registerFullName">الاسم الكامل</label>
-                    <input type="text" id="registerFullName" placeholder="أدخل اسمك الكامل">
+                <div class="mb-6">
+                    <label for="registerFullName" class="block text-gray-700 text-sm font-bold mb-2">الاسم الكامل:</label>
+                    <input type="text" id="registerFullName" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="ادخل اسمك الكامل">
                 </div>
-                <button id="registerBtn" onclick="handleRegister()">إنشاء الحساب</button>
-                <p style="text-align: center; margin-top: 15px; color: #999; font-size: 14px;">
-                    لديك حساب بالفعل؟ <a href="#" onclick="toggleForms(); return false;" style="color: #667eea; text-decoration: none; font-weight: 600;">تسجيل الدخول</a>
+                <button onclick="handleRegister()" class="btn-primary text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">إنشاء الحساب</button>
+                <p class="text-center text-gray-600 text-sm mt-4">
+                    لديك حساب بالفعل؟ <a href="#" onclick="toggleForms()" class="text-purple-600 hover:text-purple-800 font-bold">تسجيل الدخول</a>
                 </p>
-            </div>
-        </div>
-
-        <!-- Feed Section -->
-        <div class="feed-section hidden" id="feedSection">
-            <div class="user-info">
-                <div>
-                    <h2 id="currentUserName"></h2>
-                    <p id="currentUserEmail"></p>
-                </div>
-                <button class="logout-btn" onclick="handleLogout()">تسجيل الخروج</button>
-            </div>
-
-            <div class="post-form">
-                <h3>📝 شارك منشوراً جديداً</h3>
-                <div class="form-group">
-                    <textarea id="postContent" placeholder="ما الذي تود مشاركته مع المحاسبين؟"></textarea>
-                </div>
-                <button id="postBtn" onclick="handleCreatePost()">نشر</button>
-            </div>
-
-            <div id="feedMessage"></div>
-
-            <div id="postsList" class="posts-list">
-                <div class="empty-state">
-                    <p>جاري تحميل المنشورات...</p>
-                </div>
             </div>
         </div>
     </div>
 
+    <!-- Main Layout -->
+    <div class="flex flex-1">
+        <!-- Sidebar -->
+        <aside class="sidebar bg-white shadow-lg p-6 flex flex-col justify-between overflow-y-auto">
+            <div>
+                <div class="flex items-center mb-8">
+                    <i class="mdi mdi-finance text-purple-700 text-4xl"></i>
+                    <h1 class="text-3xl font-bold text-purple-700 mr-3">محاسبون</h1>
+                </div>
+
+                <!-- User Profile Card -->
+                <div id="sidebarProfileCard" class="profile-card rounded-lg p-4 text-white mb-8 hidden">
+                    <div class="flex items-center mb-3">
+                        <img src="https://via.placeholder.com/40/667eea/ffffff?text=U" alt="User Avatar" class="rounded-full w-10 h-10 border-2 border-white ml-3">
+                        <div>
+                            <h3 id="sidebarUserName" class="font-bold text-lg"></h3>
+                            <p id="sidebarUserEmail" class="text-sm opacity-80"></p>
+                        </div>
+                    </div>
+                    <button onclick="handleLogout()" class="btn-outline bg-white text-purple-700 hover:bg-purple-700 hover:text-white text-sm py-1 px-3 rounded-full w-full">تسجيل الخروج</button>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="mb-8">
+                    <ul>
+                        <li class="mb-3"><a href="#" class="flex items-center text-gray-700 hover:text-purple-700 font-semibold text-lg"><i class="mdi mdi-home-variant ml-3 text-2xl"></i>الرئيسية</a></li>
+                        <li class="mb-3"><a href="#" class="flex items-center text-gray-700 hover:text-purple-700 font-semibold text-lg"><i class="mdi mdi-account-group ml-3 text-2xl"></i>المحاسبون</a></li>
+                        <li class="mb-3"><a href="#" class="flex items-center text-gray-700 hover:text-purple-700 font-semibold text-lg"><i class="mdi mdi-briefcase-variant ml-3 text-2xl"></i>الوظائف</a></li>
+                        <li class="mb-3"><a href="#" class="flex items-center text-gray-700 hover:text-purple-700 font-semibold text-lg"><i class="mdi mdi-message-text ml-3 text-2xl"></i>الرسائل</a></li>
+                        <li class="mb-3"><a href="#" class="flex items-center text-gray-700 hover:text-purple-700 font-semibold text-lg"><i class="mdi mdi-cog ml-3 text-2xl"></i>الإعدادات</a></li>
+                    </ul>
+                </nav>
+
+                <!-- Categories -->
+                <div>
+                    <h3 class="text-gray-500 font-bold text-sm mb-4">الأقسام</h3>
+                    <ul id="categoriesList">
+                        <li class="mb-2"><a href="#" class="category-item flex items-center p-2 rounded-lg text-gray-700"><i class="mdi mdi-chart-bar ml-2"></i>محاسبة مالية</a></li>
+                        <li class="mb-2"><a href="#" class="category-item flex items-center p-2 rounded-lg text-gray-700"><i class="mdi mdi-file-document-outline ml-2"></i>ضرائب</a></li>
+                        <li class="mb-2"><a href="#" class="category-item flex items-center p-2 rounded-lg text-gray-700"><i class="mdi mdi-magnify ml-2"></i>تدقيق</a></li>
+                        <li class="mb-2"><a href="#" class="category-item flex items-center p-2 rounded-lg text-gray-700"><i class="mdi mdi-calculator ml-2"></i>محاسبة تكاليف</a></li>
+                        <li class="mb-2"><a href="#" class="category-item flex items-center p-2 rounded-lg text-gray-700"><i class="mdi mdi-lightbulb-on-outline ml-2"></i>نصائح مهنية</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="text-center text-gray-400 text-xs mt-8">
+                &copy; 2023 منصة المحاسبين. جميع الحقوق محفوظة.
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-6">
+            <!-- Post Creation -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">إنشاء منشور جديد</h2>
+                <div id="feedMessage" class="mb-4"></div>
+                <textarea id="postContent" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 mb-4" rows="4" placeholder="ما الذي تود مشاركته مع المحاسبين اليوم؟"></textarea>
+                <button onclick="handleCreatePost()" class="btn-primary text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">نشر المنشور</button>
+            </div>
+
+            <!-- Posts Feed -->
+            <div id="postsList" class="space-y-6">
+                <!-- Posts will be loaded here -->
+                <div class="text-center text-gray-500 p-10">جاري تحميل المنشورات...</div>
+            </div>
+        </main>
+    </div>
+
     <script>
-        // Initialize Supabase (Using a public demo project for immediate functionality)
-        // In a real production environment, these would be your actual Supabase credentials
-        const supabaseUrl = 'https://demo-project.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlbW8tcHJvamVjdCIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNjg1NjAwMDAwLCJleHAiOjIwMDEyMDAwMDB9.demo-key-for-testing-purposes-only';
-        
-        // Fallback to LocalStorage if Supabase fails (to ensure the app always works)
-        let useLocalStorage = true;
-        
-        const db = {
-            getUsers: () => JSON.parse(localStorage.getItem('acc_users') || '[]'),
-            saveUser: (user) => {
-                const users = db.getUsers();
-                users.push(user);
-                localStorage.setItem('acc_users', JSON.stringify(users));
-            },
-            getPosts: () => JSON.parse(localStorage.getItem('acc_posts') || '[]'),
-            savePost: (post) => {
-                const posts = db.getPosts();
-                posts.unshift(post);
-                localStorage.setItem('acc_posts', JSON.stringify(posts));
-            }
-        };
+        const SUPABASE_URL = 'https://qfofvlypuzqjyzvjyzvj.supabase.co'; // Replace with your Supabase URL
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmb2Z2bHlwdXpxanl6dmp5enZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTYxNjY0MDAsImV4cCI6MTgzMTc1ODQwMH0.your_anon_key_here'; // Replace with your Supabase Anon Key
+
+        const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let currentUser = null;
 
-        // Initialize
-        window.addEventListener('load', () => {
-            const savedUser = localStorage.getItem('currentUser');
-            if (savedUser) {
-                currentUser = JSON.parse(savedUser);
-                showFeed();
-                loadPosts();
-            }
-            
-            // Add initial welcome post if empty
-            if (db.getPosts().length === 0) {
-                db.savePost({
-                    id: Date.now(),
-                    author: 'إدارة المنصة',
-                    email: 'admin@accounting.com',
-                    content: 'أهلاً بكم في منصة المحاسبين! يسعدنا انضمامكم إلينا لمشاركة الخبرات والمعرفة المالية. هذه المنصة مؤمنة ومشفرة بالكامل.',
-                    created_at: new Date().toISOString()
-                });
-            }
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            loadPosts();
         });
+
+        async function checkAuth() {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                currentUser = user;
+                document.getElementById('authModal').classList.add('hidden');
+                document.getElementById('sidebarProfileCard').classList.remove('hidden');
+                document.getElementById('sidebarUserName').textContent = currentUser.user_metadata.full_name || currentUser.email;
+                document.getElementById('sidebarUserEmail').textContent = currentUser.email;
+            } else {
+                document.getElementById('authModal').classList.remove('hidden');
+            }
+        }
 
         function toggleForms() {
             document.getElementById('loginForm').classList.toggle('hidden');
@@ -440,168 +237,133 @@
             const email = document.getElementById('registerEmail').value.trim();
             const password = document.getElementById('registerPassword').value;
             const fullName = document.getElementById('registerFullName').value.trim();
-            const btn = document.getElementById('registerBtn');
 
             if (!email || !password || !fullName) {
                 showMessage('authMessage', 'يرجى ملء جميع الحقول', 'error');
                 return;
             }
-
             if (password.length < 6) {
                 showMessage('authMessage', 'كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'error');
                 return;
             }
 
-            btn.disabled = true;
-            btn.textContent = 'جاري الإنشاء...';
-
-            try {
-                // Simulate network delay for realism
-                await new Promise(resolve => setTimeout(resolve, 800));
-
-                const users = db.getUsers();
-                if (users.find(u => u.email === email)) {
-                    showMessage('authMessage', 'البريد الإلكتروني مستخدم مسبقاً', 'error');
-                    btn.disabled = false;
-                    btn.textContent = 'إنشاء الحساب';
-                    return;
+            const { data, error } = await supabase.auth.signUp({
+                email: email,
+                password: password,
+                options: {
+                    data: {
+                        full_name: fullName,
+                    }
                 }
+            });
 
-                const newUser = { id: Date.now(), email, fullName };
-                db.saveUser(newUser);
-                
-                currentUser = newUser;
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                showMessage('authMessage', 'تم إنشاء الحساب بنجاح!', 'success');
-                setTimeout(() => showFeed(), 1000);
-            } catch (error) {
-                showMessage('authMessage', 'حدث خطأ أثناء إنشاء الحساب', 'error');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'إنشاء الحساب';
+            if (error) {
+                showMessage('authMessage', error.message, 'error');
+            } else if (data.user) {
+                showMessage('authMessage', 'تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني لتأكيد الحساب.', 'success');
+                document.getElementById('registerForm').classList.add('hidden');
+                document.getElementById('loginForm').classList.remove('hidden');
             }
         }
 
         async function handleLogin() {
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
-            const btn = document.getElementById('loginBtn');
 
             if (!email || !password) {
                 showMessage('authMessage', 'يرجى إدخال البريد وكلمة المرور', 'error');
                 return;
             }
 
-            btn.disabled = true;
-            btn.textContent = 'جاري الدخول...';
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
 
-            try {
-                // Simulate network delay for realism
-                await new Promise(resolve => setTimeout(resolve, 800));
-
-                const users = db.getUsers();
-                const user = users.find(u => u.email === email);
-
-                if (!user && email !== 'admin@accounting.com') {
-                    showMessage('authMessage', 'بيانات الدخول غير صحيحة', 'error');
-                    btn.disabled = false;
-                    btn.textContent = 'دخول';
-                    return;
-                }
-
-                currentUser = user || { id: 0, email: 'admin@accounting.com', fullName: 'إدارة المنصة' };
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                showMessage('authMessage', 'تم تسجيل الدخول بنجاح!', 'success');
-                setTimeout(() => showFeed(), 1000);
-            } catch (error) {
-                showMessage('authMessage', 'حدث خطأ أثناء تسجيل الدخول', 'error');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'دخول';
+            if (error) {
+                showMessage('authMessage', error.message, 'error');
+            } else if (data.user) {
+                currentUser = data.user;
+                document.getElementById('authModal').classList.add('hidden');
+                document.getElementById('sidebarProfileCard').classList.remove('hidden');
+                document.getElementById('sidebarUserName').textContent = currentUser.user_metadata.full_name || currentUser.email;
+                document.getElementById('sidebarUserEmail').textContent = currentUser.email;
+                loadPosts();
             }
         }
 
-        function showFeed() {
-            document.getElementById('authSection').classList.add('hidden');
-            document.getElementById('feedSection').classList.remove('hidden');
-            document.getElementById('currentUserName').textContent = currentUser.fullName;
-            document.getElementById('currentUserEmail').textContent = currentUser.email;
-            loadPosts();
+        async function handleLogout() {
+            const { error } = await supabase.auth.signOut();
+            if (!error) {
+                currentUser = null;
+                document.getElementById('authModal').classList.remove('hidden');
+                document.getElementById('sidebarProfileCard').classList.add('hidden');
+                document.getElementById('loginForm').classList.remove('hidden');
+                document.getElementById('registerForm').classList.add('hidden');
+                document.getElementById('postsList').innerHTML = '<div class="text-center text-gray-500 p-10">جاري تحميل المنشورات...</div>';
+            }
         }
 
         async function handleCreatePost() {
-            const content = document.getElementById('postContent').value.trim();
-            const btn = document.getElementById('postBtn');
-
-            if (!content) {
-                showMessage('feedMessage', 'يرجى كتابة محتوى المنشور', 'error');
+            if (!currentUser) {
+                showMessage('feedMessage', 'يرجى تسجيل الدخول أولاً لنشر منشور', 'error');
                 return;
             }
 
-            btn.disabled = true;
-            btn.textContent = 'جاري النشر...';
+            const content = document.getElementById('postContent').value.trim();
+            if (!content) {
+                showMessage('feedMessage', 'لا يمكن نشر منشور فارغ', 'error');
+                return;
+            }
 
-            try {
-                // Simulate network delay for realism
-                await new Promise(resolve => setTimeout(resolve, 500));
-
-                const newPost = {
-                    id: Date.now(),
-                    author: currentUser.fullName,
-                    email: currentUser.email,
+            const { data, error } = await supabase.from('posts').insert([
+                {
+                    user_id: currentUser.id,
+                    author_name: currentUser.user_metadata.full_name || currentUser.email,
                     content: content,
-                    created_at: new Date().toISOString()
-                };
+                    category: 'عام' // Default category for now
+                }
+            ]);
 
-                db.savePost(newPost);
+            if (error) {
+                showMessage('feedMessage', error.message, 'error');
+            } else {
                 document.getElementById('postContent').value = '';
-                showMessage('feedMessage', 'تم النشر بنجاح!', 'success');
+                showMessage('feedMessage', 'تم نشر المنشور بنجاح!', 'success');
                 loadPosts();
-            } catch (error) {
-                showMessage('feedMessage', 'حدث خطأ أثناء النشر', 'error');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'نشر';
             }
         }
 
-        function loadPosts() {
-            const posts = db.getPosts();
+        async function loadPosts() {
+            const { data: posts, error } = await supabase.from('posts').select('*').order('created_at', { ascending: false });
+
             const postsList = document.getElementById('postsList');
-            
+            if (error) {
+                postsList.innerHTML = `<div class="message error">خطأ في تحميل المنشورات: ${error.message}</div>`;
+                return;
+            }
+
             if (posts.length === 0) {
-                postsList.innerHTML = '<div class="empty-state"><p>لا توجد منشورات حتى الآن</p></div>';
+                postsList.innerHTML = '<div class="text-center text-gray-500 p-10">لا توجد منشورات حتى الآن. كن أول من ينشر!</div>';
                 return;
             }
 
             postsList.innerHTML = posts.map(post => `
-                <div class="post-card">
-                    <div class="post-header">
+                <div class="post-card bg-white rounded-lg shadow-md p-5">
+                    <div class="flex items-center mb-3">
+                        <img src="https://via.placeholder.com/40/667eea/ffffff?text=U" alt="User Avatar" class="rounded-full w-10 h-10 border-2 border-purple-300 ml-3">
                         <div>
-                            <div class="post-author">${post.author}</div>
-                            <div class="post-username">${post.email.split('@')[0]}</div>
+                            <p class="font-bold text-gray-800">${post.author_name}</p>
+                            <p class="text-sm text-gray-500">${timeAgo(post.created_at)}</p>
                         </div>
-                        <div class="post-time">${formatTime(post.created_at)}</div>
                     </div>
-                    <div class="post-content">${escapeHtml(post.content)}</div>
-                    <div class="post-actions">
-                        <button class="like-btn" onclick="toggleLike(this)">❤️ إعجاب</button>
+                    <p class="text-gray-700 mb-4">${escapeHtml(post.content)}</p>
+                    <div class="flex items-center text-gray-500 text-sm">
+                        <button class="flex items-center ml-4 hover:text-purple-600"><i class="mdi mdi-thumb-up-outline ml-1"></i>إعجاب</button>
+                        <button class="flex items-center hover:text-purple-600"><i class="mdi mdi-comment-outline ml-1"></i>تعليق</button>
                     </div>
                 </div>
             `).join('');
-        }
-
-        function toggleLike(button) {
-            button.classList.toggle('liked');
-            button.textContent = button.classList.contains('liked') ? '❤️ معجب' : '❤️ إعجاب';
-        }
-
-        function handleLogout() {
-            if (confirm('هل تريد تسجيل الخروج؟')) {
-                currentUser = null;
-                localStorage.removeItem('currentUser');
-                location.reload();
-            }
         }
 
         function showMessage(elementId, message, type) {
@@ -609,21 +371,25 @@
             element.innerHTML = `<div class="message ${type}">${message}</div>`;
             setTimeout(() => {
                 element.innerHTML = '';
-            }, 3000);
+            }, 5000);
         }
 
-        function formatTime(timestamp) {
-            const date = new Date(timestamp);
+        function timeAgo(dateString) {
             const now = new Date();
-            const diff = now - date;
-            const seconds = Math.floor(diff / 1000);
-            const minutes = Math.floor(seconds / 60);
-            const hours = Math.floor(minutes / 60);
+            const past = new Date(dateString);
+            const seconds = Math.floor((now - past) / 1000);
 
-            if (seconds < 60) return 'الآن';
-            if (minutes < 60) return `منذ ${minutes} دقيقة`;
-            if (hours < 24) return `منذ ${hours} ساعة`;
-            return date.toLocaleDateString('ar-SA');
+            if (seconds < 60) return `منذ ${seconds} ثوانٍ`;
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `منذ ${minutes} دقائق`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `منذ ${hours} ساعات`;
+            const days = Math.floor(hours / 24);
+            if (days < 30) return `منذ ${days} أيام`;
+            const months = Math.floor(days / 30);
+            if (months < 12) return `منذ ${months} أشهر`;
+            const years = Math.floor(months / 12);
+            return `منذ ${years} سنوات`;
         }
 
         function escapeHtml(text) {
