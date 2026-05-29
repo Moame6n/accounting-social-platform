@@ -30,10 +30,16 @@
 
         .category-item {
             transition: background-color 0.2s ease-in-out;
+            cursor: pointer;
         }
 
         .category-item:hover {
             background-color: #e0e7ff;
+        }
+
+        .category-item.active {
+            background-color: #667eea;
+            color: white;
         }
 
         .profile-card {
@@ -80,6 +86,25 @@
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
+
+        .google-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background-color: #ffffff;
+            border: 1px solid #dadce0;
+            color: #3c4043;
+            font-weight: 500;
+            padding: 10px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .google-btn:hover {
+            background-color: #f8f9fa;
+        }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden">
@@ -87,7 +112,7 @@
     <!-- Auth Modal -->
     <div id="authModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
         <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md mx-4">
-            <h2 class="text-3xl font-bold text-center text-purple-700 mb-6">منصة المحاسبين</h2>
+            <h2 class="text-3xl font-bold text-center text-purple-700 mb-2">منصة المحاسبين</h2>
             <p class="text-center text-gray-600 mb-8">شبكة تواصل احترافية للمحاسبين والخبراء الماليين</p>
 
             <div id="authMessage" class="mb-4"></div>
@@ -97,15 +122,35 @@
                 <h3 class="text-xl font-semibold text-gray-800 mb-4">تسجيل الدخول</h3>
                 <div class="mb-4">
                     <label for="loginEmail" class="block text-gray-700 text-sm font-bold mb-2">البريد الإلكتروني:</label>
-                    <input type="email" id="loginEmail" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="ادخل بريدك الإلكتروني">
+                    <input type="email" id="loginEmail" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="ادخل بريدك الإلكتروني">
                 </div>
                 <div class="mb-6">
                     <label for="loginPassword" class="block text-gray-700 text-sm font-bold mb-2">كلمة المرور:</label>
-                    <input type="password" id="loginPassword" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="ادخل كلمة المرور">
+                    <input type="password" id="loginPassword" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="ادخل كلمة المرور">
                 </div>
-                <button onclick="handleLogin()" class="btn-primary text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">دخول</button>
+                <button onclick="handleLogin()" class="btn-primary text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full mb-4">دخول</button>
+                
+                <div class="relative mb-4">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-2 bg-white text-gray-500">أو</span>
+                    </div>
+                </div>
+
+                <button onclick="handleGoogleLogin()" class="google-btn w-full mb-4">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    </svg>
+                    دخول عبر جوجل
+                </button>
+
                 <p class="text-center text-gray-600 text-sm mt-4">
-                    ليس لديك حساب؟ <a href="#" onclick="toggleForms()" class="text-purple-600 hover:text-purple-800 font-bold">إنشاء حساب جديد</a>
+                    ليس لديك حساب؟ <a href="#" onclick="toggleForms(); return false;" class="text-purple-600 hover:text-purple-800 font-bold">إنشاء حساب جديد</a>
                 </p>
             </div>
 
@@ -114,19 +159,19 @@
                 <h3 class="text-xl font-semibold text-gray-800 mb-4">إنشاء حساب جديد</h3>
                 <div class="mb-4">
                     <label for="registerEmail" class="block text-gray-700 text-sm font-bold mb-2">البريد الإلكتروني:</label>
-                    <input type="email" id="registerEmail" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="ادخل بريدك الإلكتروني">
+                    <input type="email" id="registerEmail" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="ادخل بريدك الإلكتروني">
                 </div>
                 <div class="mb-4">
                     <label for="registerPassword" class="block text-gray-700 text-sm font-bold mb-2">كلمة المرور:</label>
-                    <input type="password" id="registerPassword" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="اختر كلمة مرور قوية">
+                    <input type="password" id="registerPassword" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="اختر كلمة مرور قوية (6 أحرف على الأقل)">
                 </div>
                 <div class="mb-6">
                     <label for="registerFullName" class="block text-gray-700 text-sm font-bold mb-2">الاسم الكامل:</label>
-                    <input type="text" id="registerFullName" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="ادخل اسمك الكامل">
+                    <input type="text" id="registerFullName" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="ادخل اسمك الكامل">
                 </div>
                 <button onclick="handleRegister()" class="btn-primary text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">إنشاء الحساب</button>
                 <p class="text-center text-gray-600 text-sm mt-4">
-                    لديك حساب بالفعل؟ <a href="#" onclick="toggleForms()" class="text-purple-600 hover:text-purple-800 font-bold">تسجيل الدخول</a>
+                    لديك حساب بالفعل؟ <a href="#" onclick="toggleForms(); return false;" class="text-purple-600 hover:text-purple-800 font-bold">تسجيل الدخول</a>
                 </p>
             </div>
         </div>
@@ -157,7 +202,7 @@
                 <!-- Navigation -->
                 <nav class="mb-8">
                     <ul>
-                        <li class="mb-3"><a href="#" class="flex items-center text-gray-700 hover:text-purple-700 font-semibold text-lg"><i class="mdi mdi-home-variant ml-3 text-2xl"></i>الرئيسية</a></li>
+                        <li class="mb-3"><a href="#" onclick="filterByCategory(''); return false;" class="flex items-center text-gray-700 hover:text-purple-700 font-semibold text-lg"><i class="mdi mdi-home-variant ml-3 text-2xl"></i>الرئيسية</a></li>
                         <li class="mb-3"><a href="#" class="flex items-center text-gray-700 hover:text-purple-700 font-semibold text-lg"><i class="mdi mdi-account-group ml-3 text-2xl"></i>المحاسبون</a></li>
                         <li class="mb-3"><a href="#" class="flex items-center text-gray-700 hover:text-purple-700 font-semibold text-lg"><i class="mdi mdi-briefcase-variant ml-3 text-2xl"></i>الوظائف</a></li>
                         <li class="mb-3"><a href="#" class="flex items-center text-gray-700 hover:text-purple-700 font-semibold text-lg"><i class="mdi mdi-message-text ml-3 text-2xl"></i>الرسائل</a></li>
@@ -169,26 +214,36 @@
                 <div>
                     <h3 class="text-gray-500 font-bold text-sm mb-4">الأقسام</h3>
                     <ul id="categoriesList">
-                        <li class="mb-2"><a href="#" class="category-item flex items-center p-2 rounded-lg text-gray-700"><i class="mdi mdi-chart-bar ml-2"></i>محاسبة مالية</a></li>
-                        <li class="mb-2"><a href="#" class="category-item flex items-center p-2 rounded-lg text-gray-700"><i class="mdi mdi-file-document-outline ml-2"></i>ضرائب</a></li>
-                        <li class="mb-2"><a href="#" class="category-item flex items-center p-2 rounded-lg text-gray-700"><i class="mdi mdi-magnify ml-2"></i>تدقيق</a></li>
-                        <li class="mb-2"><a href="#" class="category-item flex items-center p-2 rounded-lg text-gray-700"><i class="mdi mdi-calculator ml-2"></i>محاسبة تكاليف</a></li>
-                        <li class="mb-2"><a href="#" class="category-item flex items-center p-2 rounded-lg text-gray-700"><i class="mdi mdi-lightbulb-on-outline ml-2"></i>نصائح مهنية</a></li>
+                        <li class="mb-2"><a href="#" onclick="filterByCategory('محاسبة مالية'); return false;" class="category-item flex items-center p-2 rounded-lg text-gray-700"><i class="mdi mdi-chart-bar ml-2"></i>محاسبة مالية</a></li>
+                        <li class="mb-2"><a href="#" onclick="filterByCategory('ضرائب'); return false;" class="category-item flex items-center p-2 rounded-lg text-gray-700"><i class="mdi mdi-file-document-outline ml-2"></i>ضرائب</a></li>
+                        <li class="mb-2"><a href="#" onclick="filterByCategory('تدقيق'); return false;" class="category-item flex items-center p-2 rounded-lg text-gray-700"><i class="mdi mdi-magnify ml-2"></i>تدقيق</a></li>
+                        <li class="mb-2"><a href="#" onclick="filterByCategory('محاسبة تكاليف'); return false;" class="category-item flex items-center p-2 rounded-lg text-gray-700"><i class="mdi mdi-calculator ml-2"></i>محاسبة تكاليف</a></li>
+                        <li class="mb-2"><a href="#" onclick="filterByCategory('نصائح مهنية'); return false;" class="category-item flex items-center p-2 rounded-lg text-gray-700"><i class="mdi mdi-lightbulb-on-outline ml-2"></i>نصائح مهنية</a></li>
                     </ul>
                 </div>
             </div>
 
             <div class="text-center text-gray-400 text-xs mt-8">
-                &copy; 2023 منصة المحاسبين. جميع الحقوق محفوظة.
+                &copy; 2026 منصة المحاسبين. جميع الحقوق محفوظة.
             </div>
         </aside>
 
         <!-- Main Content -->
         <main class="flex-1 overflow-y-auto p-6">
             <!-- Post Creation -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6" id="postCreationSection" style="display: none;">
                 <h2 class="text-xl font-bold text-gray-800 mb-4">إنشاء منشور جديد</h2>
                 <div id="feedMessage" class="mb-4"></div>
+                <div class="mb-4">
+                    <label for="postCategory" class="block text-gray-700 text-sm font-bold mb-2">الفئة:</label>
+                    <select id="postCategory" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="محاسبة مالية">محاسبة مالية</option>
+                        <option value="ضرائب">ضرائب</option>
+                        <option value="تدقيق">تدقيق</option>
+                        <option value="محاسبة تكاليف">محاسبة تكاليف</option>
+                        <option value="نصائح مهنية">نصائح مهنية</option>
+                    </select>
+                </div>
                 <textarea id="postContent" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 mb-4" rows="4" placeholder="ما الذي تود مشاركته مع المحاسبين اليوم؟"></textarea>
                 <button onclick="handleCreatePost()" class="btn-primary text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">نشر المنشور</button>
             </div>
@@ -202,12 +257,13 @@
     </div>
 
     <script>
-        const SUPABASE_URL = 'https://qfofvlypuzqjyzvjyzvj.supabase.co'; // Replace with your Supabase URL
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmb2Z2bHlwdXpxanl6dmp5enZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTYxNjY0MDAsImV4cCI6MTgzMTc1ODQwMH0.your_anon_key_here'; // Replace with your Supabase Anon Key
+        const SUPABASE_URL = 'https://qfofvlypuzqjyzvjyzvj.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmb2Z2bHlwdXpxanl6dmp5enZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTYxNjY0MDAsImV4cCI6MTgzMTc1ODQwMH0.your_anon_key_here';
 
         const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let currentUser = null;
+        let currentCategory = '';
 
         document.addEventListener('DOMContentLoaded', () => {
             checkAuth();
@@ -215,15 +271,21 @@
         });
 
         async function checkAuth() {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                currentUser = user;
-                document.getElementById('authModal').classList.add('hidden');
-                document.getElementById('sidebarProfileCard').classList.remove('hidden');
-                document.getElementById('sidebarUserName').textContent = currentUser.user_metadata.full_name || currentUser.email;
-                document.getElementById('sidebarUserEmail').textContent = currentUser.email;
-            } else {
-                document.getElementById('authModal').classList.remove('hidden');
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    currentUser = user;
+                    document.getElementById('authModal').classList.add('hidden');
+                    document.getElementById('sidebarProfileCard').classList.remove('hidden');
+                    document.getElementById('postCreationSection').style.display = 'block';
+                    document.getElementById('sidebarUserName').textContent = currentUser.user_metadata?.full_name || currentUser.email;
+                    document.getElementById('sidebarUserEmail').textContent = currentUser.email;
+                } else {
+                    document.getElementById('authModal').classList.remove('hidden');
+                    document.getElementById('postCreationSection').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('خطأ في التحقق من المستخدم:', error);
             }
         }
 
@@ -247,22 +309,28 @@
                 return;
             }
 
-            const { data, error } = await supabase.auth.signUp({
-                email: email,
-                password: password,
-                options: {
-                    data: {
-                        full_name: fullName,
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            full_name: fullName,
+                        }
                     }
-                }
-            });
+                });
 
-            if (error) {
-                showMessage('authMessage', error.message, 'error');
-            } else if (data.user) {
-                showMessage('authMessage', 'تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني لتأكيد الحساب.', 'success');
-                document.getElementById('registerForm').classList.add('hidden');
-                document.getElementById('loginForm').classList.remove('hidden');
+                if (error) {
+                    showMessage('authMessage', error.message, 'error');
+                } else if (data.user) {
+                    showMessage('authMessage', 'تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني لتأكيد الحساب.', 'success');
+                    setTimeout(() => {
+                        document.getElementById('registerForm').classList.add('hidden');
+                        document.getElementById('loginForm').classList.remove('hidden');
+                    }, 2000);
+                }
+            } catch (error) {
+                showMessage('authMessage', 'حدث خطأ: ' + error.message, 'error');
             }
         }
 
@@ -275,32 +343,62 @@
                 return;
             }
 
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email: email,
-                password: password,
-            });
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password,
+                });
 
-            if (error) {
-                showMessage('authMessage', error.message, 'error');
-            } else if (data.user) {
-                currentUser = data.user;
-                document.getElementById('authModal').classList.add('hidden');
-                document.getElementById('sidebarProfileCard').classList.remove('hidden');
-                document.getElementById('sidebarUserName').textContent = currentUser.user_metadata.full_name || currentUser.email;
-                document.getElementById('sidebarUserEmail').textContent = currentUser.email;
-                loadPosts();
+                if (error) {
+                    showMessage('authMessage', error.message, 'error');
+                } else if (data.user) {
+                    currentUser = data.user;
+                    document.getElementById('authModal').classList.add('hidden');
+                    document.getElementById('sidebarProfileCard').classList.remove('hidden');
+                    document.getElementById('postCreationSection').style.display = 'block';
+                    document.getElementById('sidebarUserName').textContent = currentUser.user_metadata?.full_name || currentUser.email;
+                    document.getElementById('sidebarUserEmail').textContent = currentUser.email;
+                    document.getElementById('loginEmail').value = '';
+                    document.getElementById('loginPassword').value = '';
+                    loadPosts();
+                }
+            } catch (error) {
+                showMessage('authMessage', 'حدث خطأ: ' + error.message, 'error');
+            }
+        }
+
+        async function handleGoogleLogin() {
+            try {
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: window.location.origin
+                    }
+                });
+
+                if (error) {
+                    showMessage('authMessage', 'خطأ في تسجيل الدخول عبر جوجل: ' + error.message, 'error');
+                }
+            } catch (error) {
+                showMessage('authMessage', 'حدث خطأ: ' + error.message, 'error');
             }
         }
 
         async function handleLogout() {
-            const { error } = await supabase.auth.signOut();
-            if (!error) {
-                currentUser = null;
-                document.getElementById('authModal').classList.remove('hidden');
-                document.getElementById('sidebarProfileCard').classList.add('hidden');
-                document.getElementById('loginForm').classList.remove('hidden');
-                document.getElementById('registerForm').classList.add('hidden');
-                document.getElementById('postsList').innerHTML = '<div class="text-center text-gray-500 p-10">جاري تحميل المنشورات...</div>';
+            try {
+                const { error } = await supabase.auth.signOut();
+                if (!error) {
+                    currentUser = null;
+                    document.getElementById('authModal').classList.remove('hidden');
+                    document.getElementById('sidebarProfileCard').classList.add('hidden');
+                    document.getElementById('postCreationSection').style.display = 'none';
+                    document.getElementById('loginForm').classList.remove('hidden');
+                    document.getElementById('registerForm').classList.add('hidden');
+                    document.getElementById('postsList').innerHTML = '<div class="text-center text-gray-500 p-10">جاري تحميل المنشورات...</div>';
+                    currentCategory = '';
+                }
+            } catch (error) {
+                console.error('خطأ في تسجيل الخروج:', error);
             }
         }
 
@@ -311,91 +409,126 @@
             }
 
             const content = document.getElementById('postContent').value.trim();
+            const category = document.getElementById('postCategory').value;
+            
             if (!content) {
                 showMessage('feedMessage', 'لا يمكن نشر منشور فارغ', 'error');
                 return;
             }
 
-            const { data, error } = await supabase.from('posts').insert([
-                {
-                    user_id: currentUser.id,
-                    author_name: currentUser.user_metadata.full_name || currentUser.email,
-                    content: content,
-                    category: 'عام' // Default category for now
-                }
-            ]);
+            try {
+                const { data, error } = await supabase.from('posts').insert([
+                    {
+                        user_id: currentUser.id,
+                        author_name: currentUser.user_metadata?.full_name || currentUser.email,
+                        content: content,
+                        category: category,
+                        created_at: new Date().toISOString()
+                    }
+                ]);
 
-            if (error) {
-                showMessage('feedMessage', error.message, 'error');
-            } else {
-                document.getElementById('postContent').value = '';
-                showMessage('feedMessage', 'تم نشر المنشور بنجاح!', 'success');
-                loadPosts();
+                if (error) {
+                    showMessage('feedMessage', 'خطأ: ' + error.message, 'error');
+                } else {
+                    document.getElementById('postContent').value = '';
+                    showMessage('feedMessage', 'تم نشر المنشور بنجاح!', 'success');
+                    loadPosts();
+                }
+            } catch (error) {
+                showMessage('feedMessage', 'حدث خطأ: ' + error.message, 'error');
             }
         }
 
         async function loadPosts() {
-            const { data: posts, error } = await supabase.from('posts').select('*').order('created_at', { ascending: false });
+            try {
+                let query = supabase.from('posts').select('*');
+                
+                if (currentCategory) {
+                    query = query.eq('category', currentCategory);
+                }
+                
+                const { data: posts, error } = await query.order('created_at', { ascending: false });
 
-            const postsList = document.getElementById('postsList');
-            if (error) {
-                postsList.innerHTML = `<div class="message error">خطأ في تحميل المنشورات: ${error.message}</div>`;
-                return;
-            }
+                const postsList = document.getElementById('postsList');
+                if (error) {
+                    postsList.innerHTML = `<div class="message error">خطأ في تحميل المنشورات: ${error.message}</div>`;
+                    return;
+                }
 
-            if (posts.length === 0) {
-                postsList.innerHTML = '<div class="text-center text-gray-500 p-10">لا توجد منشورات حتى الآن. كن أول من ينشر!</div>';
-                return;
-            }
+                if (!posts || posts.length === 0) {
+                    postsList.innerHTML = '<div class="text-center text-gray-500 p-10">لا توجد منشورات حتى الآن. كن أول من ينشر!</div>';
+                    return;
+                }
 
-            postsList.innerHTML = posts.map(post => `
-                <div class="post-card bg-white rounded-lg shadow-md p-5">
-                    <div class="flex items-center mb-3">
-                        <img src="https://via.placeholder.com/40/667eea/ffffff?text=U" alt="User Avatar" class="rounded-full w-10 h-10 border-2 border-purple-300 ml-3">
-                        <div>
-                            <p class="font-bold text-gray-800">${post.author_name}</p>
-                            <p class="text-sm text-gray-500">${timeAgo(post.created_at)}</p>
+                postsList.innerHTML = posts.map(post => `
+                    <div class="bg-white rounded-lg shadow-md p-6 post-card">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="font-bold text-gray-800">${post.author_name || 'مستخدم'}</h3>
+                                <p class="text-sm text-gray-500">${new Date(post.created_at).toLocaleDateString('ar-EG')}</p>
+                            </div>
+                            <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-semibold">${post.category || 'عام'}</span>
+                        </div>
+                        <p class="text-gray-700 mb-4">${post.content}</p>
+                        <div class="flex gap-4 pt-4 border-t border-gray-200">
+                            <button onclick="toggleLike(${post.id})" class="flex items-center gap-2 text-gray-600 hover:text-purple-700">
+                                <i class="mdi mdi-heart-outline"></i>
+                                <span id="likes-${post.id}">${post.likes || 0}</span>
+                            </button>
+                            <button class="flex items-center gap-2 text-gray-600 hover:text-purple-700">
+                                <i class="mdi mdi-comment-outline"></i>
+                                <span>تعليق</span>
+                            </button>
                         </div>
                     </div>
-                    <p class="text-gray-700 mb-4">${escapeHtml(post.content)}</p>
-                    <div class="flex items-center text-gray-500 text-sm">
-                        <button class="flex items-center ml-4 hover:text-purple-600"><i class="mdi mdi-thumb-up-outline ml-1"></i>إعجاب</button>
-                        <button class="flex items-center hover:text-purple-600"><i class="mdi mdi-comment-outline ml-1"></i>تعليق</button>
-                    </div>
-                </div>
-            `).join('');
+                `).join('');
+            } catch (error) {
+                console.error('خطأ في تحميل المنشورات:', error);
+                document.getElementById('postsList').innerHTML = '<div class="message error">حدث خطأ في تحميل المنشورات</div>';
+            }
+        }
+
+        async function toggleLike(postId) {
+            if (!currentUser) {
+                showMessage('feedMessage', 'يرجى تسجيل الدخول أولاً', 'error');
+                return;
+            }
+
+            try {
+                const { data: post } = await supabase.from('posts').select('likes').eq('id', postId).single();
+                const newLikes = (post?.likes || 0) + 1;
+                
+                const { error } = await supabase.from('posts').update({ likes: newLikes }).eq('id', postId);
+                
+                if (!error) {
+                    document.getElementById(`likes-${postId}`).textContent = newLikes;
+                }
+            } catch (error) {
+                console.error('خطأ في إضافة الإعجاب:', error);
+            }
+        }
+
+        function filterByCategory(category) {
+            currentCategory = category;
+            loadPosts();
+            
+            // Update active category styling
+            document.querySelectorAll('.category-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            if (category) {
+                event.target.closest('.category-item').classList.add('active');
+            }
         }
 
         function showMessage(elementId, message, type) {
             const element = document.getElementById(elementId);
             element.innerHTML = `<div class="message ${type}">${message}</div>`;
-            setTimeout(() => {
-                element.innerHTML = '';
-            }, 5000);
-        }
-
-        function timeAgo(dateString) {
-            const now = new Date();
-            const past = new Date(dateString);
-            const seconds = Math.floor((now - past) / 1000);
-
-            if (seconds < 60) return `منذ ${seconds} ثوانٍ`;
-            const minutes = Math.floor(seconds / 60);
-            if (minutes < 60) return `منذ ${minutes} دقائق`;
-            const hours = Math.floor(minutes / 60);
-            if (hours < 24) return `منذ ${hours} ساعات`;
-            const days = Math.floor(hours / 24);
-            if (days < 30) return `منذ ${days} أيام`;
-            const months = Math.floor(days / 30);
-            if (months < 12) return `منذ ${months} أشهر`;
-            const years = Math.floor(months / 12);
-            return `منذ ${years} سنوات`;
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+            if (type === 'success') {
+                setTimeout(() => {
+                    element.innerHTML = '';
+                }, 3000);
+            }
         }
     </script>
 </body>
