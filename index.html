@@ -6,7 +6,6 @@
     <meta name="description" content="منصة المحاسبين - شبكة تواصل احترافية للمحاسبين والخبراء الماليين">
     <title>منصة المحاسبين</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.x/css/materialdesignicons.min.css" rel="stylesheet">
     <style>
         * {
@@ -44,21 +43,34 @@
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
         }
 
-        /* Responsive utilities */
         @media (max-width: 768px) {
             .sidebar-responsive {
                 position: fixed;
                 left: 0;
                 top: 0;
-                width: 100%;
+                width: 75%;
                 height: 100%;
                 z-index: 40;
                 transform: translateX(-100%);
                 transition: transform 0.3s ease;
+                background: white;
+                overflow-y: auto;
             }
 
             .sidebar-responsive.active {
                 transform: translateX(0);
+            }
+
+            .overlay-mobile {
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 30;
+                display: none;
+            }
+
+            .overlay-mobile.active {
+                display: block;
             }
         }
 
@@ -99,24 +111,39 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .btn-primary {
+            @apply px-4 py-2 gradient-primary text-white rounded-lg font-semibold transition-all hover:shadow-lg;
+        }
+
+        .input-field {
+            @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all;
+        }
+
+        .post-card {
+            @apply bg-white rounded-xl shadow-md p-6 fade-in hover:shadow-lg transition-all;
+        }
+
+        .category-btn {
+            @apply flex items-center gap-2 p-3 rounded-lg text-gray-700 hover:bg-purple-50 transition-all cursor-pointer;
+        }
+
+        .category-btn.active {
+            @apply bg-purple-100 text-purple-600;
+        }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script>
-        // ============ CONFIGURATION ============
-        const CONFIG = {
-            SUPABASE_URL: 'https://qfofvlypuzqjyzvjyzvj.supabase.co',
-            SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmb2Z2bHlwdXpxanl6dmp5enZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTYxNjY0MDAsImV4cCI6MTgzMTc1ODQwMH0.your_anon_key_here'
-        };
-
         // ============ STATE MANAGEMENT ============
         const state = {
             currentUser: null,
             currentPage: 'auth',
             currentCategory: '',
             posts: [],
+            users: [],
             categories: [
                 { id: 1, name: 'محاسبة مالية', icon: 'mdi-chart-bar' },
                 { id: 2, name: 'ضرائب', icon: 'mdi-file-document-outline' },
@@ -126,8 +153,16 @@
             ]
         };
 
-        // ============ SUPABASE INITIALIZATION ============
-        const supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+        // ============ LOCAL STORAGE MANAGEMENT ============
+        const storage = {
+            getUsers: () => JSON.parse(localStorage.getItem('accounting_users') || '[]'),
+            saveUsers: (users) => localStorage.setItem('accounting_users', JSON.stringify(users)),
+            getPosts: () => JSON.parse(localStorage.getItem('accounting_posts') || '[]'),
+            savePosts: (posts) => localStorage.setItem('accounting_posts', JSON.stringify(posts)),
+            getCurrentUser: () => JSON.parse(localStorage.getItem('current_user') || 'null'),
+            setCurrentUser: (user) => localStorage.setItem('current_user', JSON.stringify(user)),
+            clearCurrentUser: () => localStorage.removeItem('current_user')
+        };
 
         // ============ UTILITY FUNCTIONS ============
         function showMessage(message, type = 'success') {
@@ -138,13 +173,6 @@
             messageEl.textContent = message;
             document.body.appendChild(messageEl);
             setTimeout(() => messageEl.remove(), 3000);
-        }
-
-        function showLoading(show = true) {
-            const loader = document.getElementById('loader');
-            if (loader) {
-                loader.style.display = show ? 'flex' : 'none';
-            }
         }
 
         function formatDate(dateString) {
@@ -158,8 +186,12 @@
             });
         }
 
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
         // ============ AUTHENTICATION FUNCTIONS ============
-        async function handleRegister(email, password, fullName) {
+        function handleRegister(email, password, fullName) {
             if (!email || !password || !fullName) {
                 showMessage('يرجى ملء جميع الحقول', 'error');
                 return;
@@ -170,121 +202,91 @@
                 return;
             }
 
-            showLoading(true);
-            try {
-                const { data, error } = await supabase.auth.signUp({
-                    email: email,
-                    password: password,
-                    options: {
-                        data: { full_name: fullName }
-                    }
-                });
-
-                if (error) {
-                    showMessage(error.message, 'error');
-                } else {
-                    showMessage('تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني', 'success');
-                    setTimeout(() => {
-                        document.getElementById('registerForm').classList.add('hidden');
-                        document.getElementById('loginForm').classList.remove('hidden');
-                    }, 2000);
-                }
-            } catch (error) {
-                showMessage('حدث خطأ: ' + error.message, 'error');
-            } finally {
-                showLoading(false);
+            if (!email.includes('@')) {
+                showMessage('البريد الإلكتروني غير صحيح', 'error');
+                return;
             }
+
+            state.users = storage.getUsers();
+            if (state.users.find(u => u.email === email)) {
+                showMessage('هذا البريد مسجل بالفعل', 'error');
+                return;
+            }
+
+            const newUser = {
+                id: generateId(),
+                email,
+                password,
+                fullName,
+                createdAt: new Date().toISOString()
+            };
+
+            state.users.push(newUser);
+            storage.saveUsers(state.users);
+            showMessage('تم إنشاء الحساب بنجاح! يرجى تسجيل الدخول', 'success');
+            
+            setTimeout(() => {
+                document.getElementById('registerForm').classList.add('hidden');
+                document.getElementById('loginForm').classList.remove('hidden');
+                document.getElementById('loginEmail').value = email;
+                document.getElementById('loginPassword').value = '';
+            }, 1500);
         }
 
-        async function handleLogin(email, password) {
+        function handleLogin(email, password) {
             if (!email || !password) {
                 showMessage('يرجى إدخال البريد وكلمة المرور', 'error');
                 return;
             }
 
-            showLoading(true);
-            try {
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
+            state.users = storage.getUsers();
+            const user = state.users.find(u => u.email === email && u.password === password);
 
-                if (error) {
-                    showMessage(error.message, 'error');
-                } else if (data.user) {
-                    state.currentUser = data.user;
-                    state.currentPage = 'dashboard';
-                    showMessage('تم تسجيل الدخول بنجاح!', 'success');
-                    render();
-                    loadPosts();
-                }
-            } catch (error) {
-                showMessage('حدث خطأ: ' + error.message, 'error');
-            } finally {
-                showLoading(false);
+            if (!user) {
+                showMessage('البريد أو كلمة المرور غير صحيحة', 'error');
+                return;
             }
+
+            state.currentUser = { id: user.id, email: user.email, fullName: user.fullName };
+            storage.setCurrentUser(state.currentUser);
+            state.currentPage = 'dashboard';
+            showMessage('تم تسجيل الدخول بنجاح!', 'success');
+            loadPosts();
+            render();
         }
 
-        async function handleLogout() {
-            showLoading(true);
-            try {
-                await supabase.auth.signOut();
-                state.currentUser = null;
+        function handleLogout() {
+            state.currentUser = null;
+            state.currentPage = 'auth';
+            state.currentCategory = '';
+            storage.clearCurrentUser();
+            showMessage('تم تسجيل الخروج بنجاح', 'success');
+            render();
+        }
+
+        function checkAuth() {
+            const user = storage.getCurrentUser();
+            if (user) {
+                state.currentUser = user;
+                state.currentPage = 'dashboard';
+                loadPosts();
+            } else {
                 state.currentPage = 'auth';
-                state.currentCategory = '';
-                state.posts = [];
-                showMessage('تم تسجيل الخروج بنجاح', 'success');
-                render();
-            } catch (error) {
-                showMessage('خطأ في تسجيل الخروج', 'error');
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        async function checkAuth() {
-            try {
-                const { data: { user } } = await supabase.auth.getUser();
-                if (user) {
-                    state.currentUser = user;
-                    state.currentPage = 'dashboard';
-                } else {
-                    state.currentPage = 'auth';
-                }
-            } catch (error) {
-                console.error('Auth check error:', error);
             }
             render();
         }
 
         // ============ POST FUNCTIONS ============
-        async function loadPosts() {
-            showLoading(true);
-            try {
-                let query = supabase.from('posts').select('*');
-                
-                if (state.currentCategory) {
-                    query = query.eq('category', state.currentCategory);
-                }
-
-                const { data, error } = await query.order('created_at', { ascending: false });
-
-                if (error) {
-                    showMessage('خطأ في تحميل المنشورات', 'error');
-                    state.posts = [];
-                } else {
-                    state.posts = data || [];
-                }
-            } catch (error) {
-                showMessage('خطأ: ' + error.message, 'error');
-                state.posts = [];
-            } finally {
-                showLoading(false);
-                render();
+        function loadPosts() {
+            state.posts = storage.getPosts();
+            if (state.currentCategory) {
+                state.posts = state.posts.filter(p => p.category === state.currentCategory);
             }
+            state.posts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            render();
         }
 
-        async function createPost(content, category) {
+        function createPost(content, category) {
             if (!content.trim()) {
                 showMessage('لا يمكن نشر منشور فارغ', 'error');
                 return;
@@ -295,57 +297,74 @@
                 return;
             }
 
-            showLoading(true);
-            try {
-                const { data, error } = await supabase.from('posts').insert([{
-                    user_id: state.currentUser.id,
-                    author_name: state.currentUser.user_metadata?.full_name || state.currentUser.email,
-                    author_email: state.currentUser.email,
-                    content: content.trim(),
-                    category: category,
-                    created_at: new Date().toISOString(),
-                    likes: 0
-                }]);
+            const newPost = {
+                id: generateId(),
+                userId: state.currentUser.id,
+                authorName: state.currentUser.fullName,
+                authorEmail: state.currentUser.email,
+                content: content.trim(),
+                category: category,
+                createdAt: new Date().toISOString(),
+                likes: 0,
+                likedBy: []
+            };
 
-                if (error) {
-                    showMessage('خطأ في نشر المنشور: ' + error.message, 'error');
-                } else {
-                    showMessage('تم نشر المنشور بنجاح!', 'success');
-                    document.getElementById('postContent').value = '';
-                    loadPosts();
-                }
-            } catch (error) {
-                showMessage('خطأ: ' + error.message, 'error');
-            } finally {
-                showLoading(false);
-            }
+            let allPosts = storage.getPosts();
+            allPosts.push(newPost);
+            storage.savePosts(allPosts);
+
+            showMessage('تم نشر المنشور بنجاح!', 'success');
+            document.getElementById('postContent').value = '';
+            loadPosts();
         }
 
-        async function toggleLike(postId) {
+        function toggleLike(postId) {
             if (!state.currentUser) {
                 showMessage('يرجى تسجيل الدخول أولاً', 'error');
                 return;
             }
 
-            try {
-                const post = state.posts.find(p => p.id === postId);
-                if (!post) return;
+            let allPosts = storage.getPosts();
+            const post = allPosts.find(p => p.id === postId);
+            
+            if (!post) return;
 
-                const newLikes = (post.likes || 0) + 1;
-                const { error } = await supabase.from('posts').update({ likes: newLikes }).eq('id', postId);
+            if (!post.likedBy) post.likedBy = [];
 
-                if (!error) {
-                    post.likes = newLikes;
-                    render();
-                }
-            } catch (error) {
-                showMessage('خطأ: ' + error.message, 'error');
+            const likeIndex = post.likedBy.indexOf(state.currentUser.id);
+            if (likeIndex > -1) {
+                post.likedBy.splice(likeIndex, 1);
+                post.likes = Math.max(0, post.likes - 1);
+            } else {
+                post.likedBy.push(state.currentUser.id);
+                post.likes = (post.likes || 0) + 1;
             }
+
+            storage.savePosts(allPosts);
+            loadPosts();
         }
 
         function filterByCategory(categoryName) {
             state.currentCategory = categoryName;
             loadPosts();
+        }
+
+        function toggleMobileMenu() {
+            const sidebar = document.querySelector('.sidebar-responsive');
+            const overlay = document.querySelector('.overlay-mobile');
+            if (sidebar) {
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+            }
+        }
+
+        function closeMobileMenu() {
+            const sidebar = document.querySelector('.sidebar-responsive');
+            const overlay = document.querySelector('.overlay-mobile');
+            if (sidebar) {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            }
         }
 
         // ============ RENDER FUNCTIONS ============
@@ -361,11 +380,11 @@
                                 </div>
                             </div>
                             <h1 class="text-4xl font-bold text-gray-800 mb-2">منصة المحاسبين</h1>
-                            <p class="text-gray-600">شبكة تواصل احترافية للمحاسبين والخبراء الماليين</p>
+                            <p class="text-gray-600 text-sm md:text-base">شبكة تواصل احترافية للمحاسبين والخبراء الماليين</p>
                         </div>
 
                         <!-- Auth Card -->
-                        <div class="bg-white rounded-2xl shadow-lg-custom p-8">
+                        <div class="bg-white rounded-2xl shadow-lg-custom p-6 md:p-8">
                             <!-- Login Form -->
                             <div id="loginForm">
                                 <h2 class="text-2xl font-bold text-gray-800 mb-6">تسجيل الدخول</h2>
@@ -373,19 +392,19 @@
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">البريد الإلكتروني</label>
                                         <input type="email" id="loginEmail" placeholder="أدخل بريدك الإلكتروني" 
-                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                                            class="input-field">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">كلمة المرور</label>
                                         <input type="password" id="loginPassword" placeholder="أدخل كلمة المرور" 
-                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                                            class="input-field">
                                     </div>
                                 </div>
                                 <button onclick="handleLoginClick()" 
-                                    class="w-full gradient-primary gradient-hover text-white font-bold py-3 rounded-lg transition-all mb-4">
+                                    class="w-full btn-primary mb-4">
                                     دخول
                                 </button>
-                                <p class="text-center text-gray-600">
+                                <p class="text-center text-gray-600 text-sm">
                                     ليس لديك حساب؟ 
                                     <a href="#" onclick="toggleAuthForms(); return false;" class="text-purple-600 font-bold hover:text-purple-700">
                                         إنشاء حساب جديد
@@ -400,24 +419,24 @@
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">الاسم الكامل</label>
                                         <input type="text" id="registerFullName" placeholder="أدخل اسمك الكامل" 
-                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                                            class="input-field">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">البريد الإلكتروني</label>
                                         <input type="email" id="registerEmail" placeholder="أدخل بريدك الإلكتروني" 
-                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                                            class="input-field">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">كلمة المرور</label>
                                         <input type="password" id="registerPassword" placeholder="اختر كلمة مرور قوية (6 أحرف على الأقل)" 
-                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                                            class="input-field">
                                     </div>
                                 </div>
                                 <button onclick="handleRegisterClick()" 
-                                    class="w-full gradient-primary gradient-hover text-white font-bold py-3 rounded-lg transition-all mb-4">
+                                    class="w-full btn-primary mb-4">
                                     إنشاء الحساب
                                 </button>
-                                <p class="text-center text-gray-600">
+                                <p class="text-center text-gray-600 text-sm">
                                     لديك حساب بالفعل؟ 
                                     <a href="#" onclick="toggleAuthForms(); return false;" class="text-purple-600 font-bold hover:text-purple-700">
                                         تسجيل الدخول
@@ -427,7 +446,7 @@
                         </div>
 
                         <!-- Footer -->
-                        <p class="text-center text-gray-500 text-sm mt-8">
+                        <p class="text-center text-gray-500 text-xs md:text-sm mt-8">
                             &copy; 2026 منصة المحاسبين. جميع الحقوق محفوظة.
                         </p>
                     </div>
@@ -439,15 +458,18 @@
             return `
                 <div class="flex h-screen bg-gray-50 overflow-hidden">
                     <!-- Mobile Menu Button -->
-                    <button onclick="toggleMobileMenu()" class="md:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg">
+                    <button onclick="toggleMobileMenu()" class="md:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg hover:bg-gray-100">
                         <i class="mdi mdi-menu text-2xl text-gray-800"></i>
                     </button>
 
+                    <!-- Mobile Overlay -->
+                    <div class="overlay-mobile md:hidden" onclick="closeMobileMenu()"></div>
+
                     <!-- Sidebar -->
-                    <aside class="sidebar-responsive md:relative md:w-64 bg-white shadow-lg flex flex-col overflow-y-auto md:overflow-y-auto">
+                    <aside class="sidebar-responsive md:relative md:w-64 bg-white shadow-lg flex flex-col overflow-y-auto">
                         <div class="p-6 border-b border-gray-200">
                             <div class="flex items-center gap-3 mb-6">
-                                <div class="w-12 h-12 gradient-primary rounded-full flex items-center justify-center text-white text-xl">
+                                <div class="w-12 h-12 gradient-primary rounded-full flex items-center justify-center text-white text-xl flex-shrink-0">
                                     <i class="mdi mdi-finance"></i>
                                 </div>
                                 <h1 class="text-2xl font-bold text-gray-800">محاسبون</h1>
@@ -457,41 +479,32 @@
                         <!-- User Profile -->
                         <div class="p-6 border-b border-gray-200">
                             <div class="flex items-center gap-3 mb-4">
-                                <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                                <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
                                     <i class="mdi mdi-account text-purple-600 text-xl"></i>
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <p class="font-semibold text-gray-800 truncate">${state.currentUser.user_metadata?.full_name || state.currentUser.email}</p>
-                                    <p class="text-sm text-gray-500 truncate">${state.currentUser.email}</p>
+                                    <p class="font-bold text-gray-800 truncate text-sm md:text-base">${state.currentUser.fullName}</p>
+                                    <p class="text-xs text-gray-500 truncate">${state.currentUser.email}</p>
                                 </div>
                             </div>
-                            <button onclick="handleLogout()" class="w-full bg-red-50 text-red-600 font-semibold py-2 rounded-lg hover:bg-red-100 transition-all">
+                            <button onclick="handleLogout()" class="w-full bg-red-50 text-red-600 font-semibold py-2 rounded-lg hover:bg-red-100 transition-all text-sm">
                                 تسجيل الخروج
                             </button>
                         </div>
 
-                        <!-- Navigation -->
-                        <nav class="p-6 border-b border-gray-200">
-                            <ul class="space-y-2">
-                                <li><a href="#" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 hover:bg-purple-50 transition-all"><i class="mdi mdi-home-variant text-xl"></i>الرئيسية</a></li>
-                                <li><a href="#" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 hover:bg-purple-50 transition-all"><i class="mdi mdi-account-group text-xl"></i>المحاسبون</a></li>
-                                <li><a href="#" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 hover:bg-purple-50 transition-all"><i class="mdi mdi-briefcase text-xl"></i>الوظائف</a></li>
-                            </ul>
-                        </nav>
-
                         <!-- Categories -->
                         <div class="p-6 flex-1 overflow-y-auto scrollbar-hide">
-                            <h3 class="text-sm font-bold text-gray-500 mb-4 uppercase">الأقسام</h3>
+                            <h3 class="text-xs font-bold text-gray-500 mb-4 uppercase">الأقسام</h3>
                             <ul class="space-y-2">
                                 <li>
-                                    <button onclick="filterByCategory('')" class="w-full text-right flex items-center gap-3 p-3 rounded-lg text-gray-700 hover:bg-purple-50 transition-all ${!state.currentCategory ? 'bg-purple-100 text-purple-600' : ''}">
+                                    <button onclick="filterByCategory(''); closeMobileMenu();" class="category-btn ${!state.currentCategory ? 'active' : ''}">
                                         <i class="mdi mdi-star text-xl"></i>
                                         <span>الكل</span>
                                     </button>
                                 </li>
                                 ${state.categories.map(cat => `
                                     <li>
-                                        <button onclick="filterByCategory('${cat.name}')" class="w-full text-right flex items-center gap-3 p-3 rounded-lg text-gray-700 hover:bg-purple-50 transition-all ${state.currentCategory === cat.name ? 'bg-purple-100 text-purple-600' : ''}">
+                                        <button onclick="filterByCategory('${cat.name}'); closeMobileMenu();" class="category-btn ${state.currentCategory === cat.name ? 'active' : ''}">
                                             <i class="mdi ${cat.icon} text-xl"></i>
                                             <span>${cat.name}</span>
                                         </button>
@@ -510,23 +523,23 @@
                     <main class="flex-1 overflow-y-auto">
                         <div class="max-w-2xl mx-auto p-4 md:p-6 space-y-6">
                             <!-- Create Post -->
-                            <div class="bg-white rounded-xl shadow-md p-6">
-                                <h2 class="text-xl font-bold text-gray-800 mb-4">إنشاء منشور جديد</h2>
+                            <div class="post-card">
+                                <h2 class="text-lg md:text-xl font-bold text-gray-800 mb-4">إنشاء منشور جديد</h2>
                                 <div class="space-y-4">
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">الفئة</label>
-                                        <select id="postCategory" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                        <select id="postCategory" class="input-field">
                                             ${state.categories.map(cat => `<option value="${cat.name}">${cat.name}</option>`).join('')}
                                         </select>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">المحتوى</label>
                                         <textarea id="postContent" placeholder="ما الذي تود مشاركته مع المحاسبين؟" 
-                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none" 
+                                            class="input-field resize-none" 
                                             rows="4"></textarea>
                                     </div>
                                     <button onclick="handleCreatePostClick()" 
-                                        class="w-full gradient-primary gradient-hover text-white font-bold py-3 rounded-lg transition-all">
+                                        class="w-full btn-primary">
                                         نشر المنشور
                                     </button>
                                 </div>
@@ -535,37 +548,44 @@
                             <!-- Posts Feed -->
                             <div class="space-y-4">
                                 ${state.posts.length === 0 ? `
-                                    <div class="bg-white rounded-xl shadow-md p-12 text-center">
+                                    <div class="post-card text-center py-12">
                                         <i class="mdi mdi-inbox text-6xl text-gray-300 mb-4"></i>
-                                        <p class="text-gray-500 text-lg">لا توجد منشورات حتى الآن. كن أول من ينشر!</p>
+                                        <p class="text-gray-500 text-base md:text-lg">لا توجد منشورات حتى الآن. كن أول من ينشر!</p>
                                     </div>
-                                ` : state.posts.map(post => `
-                                    <div class="bg-white rounded-xl shadow-md p-6 fade-in">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="flex items-center gap-3">
-                                                <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                                ` : state.posts.map(post => {
+                                    const isLiked = post.likedBy && post.likedBy.includes(state.currentUser.id);
+                                    return `
+                                    <div class="post-card">
+                                        <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                                            <div class="flex items-center gap-3 flex-1 min-w-0">
+                                                <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
                                                     <i class="mdi mdi-account text-purple-600"></i>
                                                 </div>
-                                                <div>
-                                                    <p class="font-bold text-gray-800">${post.author_name}</p>
-                                                    <p class="text-xs text-gray-500">${formatDate(post.created_at)}</p>
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="font-bold text-gray-800 truncate text-sm md:text-base">${post.authorName}</p>
+                                                    <p class="text-xs text-gray-500 truncate">${formatDate(post.createdAt)}</p>
                                                 </div>
                                             </div>
-                                            <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-semibold">${post.category}</span>
+                                            <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-semibold flex-shrink-0">${post.category}</span>
                                         </div>
-                                        <p class="text-gray-700 mb-4 leading-relaxed">${post.content}</p>
+                                        <p class="text-gray-700 mb-4 leading-relaxed text-sm md:text-base">${post.content}</p>
                                         <div class="flex gap-4 pt-4 border-t border-gray-200">
-                                            <button onclick="toggleLike(${post.id})" class="flex items-center gap-2 text-gray-600 hover:text-red-500 transition-all">
-                                                <i class="mdi mdi-heart-outline text-xl"></i>
+                                            <button onclick="toggleLike('${post.id}')" class="flex items-center gap-2 transition-all ${isLiked ? 'text-red-500' : 'text-gray-600 hover:text-red-500'}">
+                                                <i class="mdi ${isLiked ? 'mdi-heart' : 'mdi-heart-outline'} text-xl"></i>
                                                 <span class="text-sm">${post.likes || 0}</span>
                                             </button>
                                             <button class="flex items-center gap-2 text-gray-600 hover:text-blue-500 transition-all">
                                                 <i class="mdi mdi-comment-outline text-xl"></i>
                                                 <span class="text-sm">تعليق</span>
                                             </button>
+                                            <button class="flex items-center gap-2 text-gray-600 hover:text-green-500 transition-all">
+                                                <i class="mdi mdi-share-outline text-xl"></i>
+                                                <span class="text-sm">مشاركة</span>
+                                            </button>
                                         </div>
                                     </div>
-                                `).join('')}
+                                `;
+                                }).join('')}
                             </div>
                         </div>
                     </main>
@@ -603,34 +623,26 @@
             createPost(content, category);
         }
 
-        function toggleMobileMenu() {
-            const sidebar = document.querySelector('.sidebar-responsive');
-            sidebar.classList.toggle('active');
-        }
-
         // ============ INITIALIZATION ============
         document.addEventListener('DOMContentLoaded', () => {
-            // Create loader
-            const loader = document.createElement('div');
-            loader.id = 'loader';
-            loader.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden';
-            loader.innerHTML = '<div class="loading-spinner"></div>';
-            document.body.appendChild(loader);
-
-            // Check auth and render
             checkAuth();
         });
 
         // Handle Enter key in forms
         document.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                if (state.currentPage === 'auth') {
-                    if (document.getElementById('loginForm').classList.contains('hidden')) {
-                        handleRegisterClick();
-                    } else {
-                        handleLoginClick();
-                    }
+            if (e.key === 'Enter' && state.currentPage === 'auth') {
+                if (document.getElementById('loginForm').classList.contains('hidden')) {
+                    handleRegisterClick();
+                } else {
+                    handleLoginClick();
                 }
+            }
+        });
+
+        // Handle window resize for responsive behavior
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 768) {
+                closeMobileMenu();
             }
         });
     </script>
