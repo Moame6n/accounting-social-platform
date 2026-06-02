@@ -3,533 +3,636 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة المحاسبين - شبكة تواصل احترافية</title>
+    <meta name="description" content="منصة المحاسبين - شبكة تواصل احترافية للمحاسبين والخبراء الماليين">
+    <title>منصة المحاسبين</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.x/css/materialdesignicons.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap');
 
         body {
             font-family: 'Cairo', sans-serif;
-            background-color: #f0f2f5;
-        }
-
-        .sidebar {
-            width: 280px;
-            min-width: 280px;
-        }
-
-        .post-card {
-            transition: transform 0.2s ease-in-out;
-        }
-
-        .post-card:hover {
-            transform: translateY(-3px);
-        }
-
-        .category-item {
-            transition: background-color 0.2s ease-in-out;
-            cursor: pointer;
-        }
-
-        .category-item:hover {
-            background-color: #e0e7ff;
-        }
-
-        .category-item.active {
-            background-color: #667eea;
-            color: white;
-        }
-
-        .profile-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-outline {
-            border: 2px solid #667eea;
-            color: #667eea;
-            transition: background-color 0.2s, color 0.2s;
-        }
-
-        .btn-outline:hover {
-            background-color: #667eea;
-            color: white;
-        }
-
-        .message {
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            text-align: center;
-            font-weight: 500;
-        }
-
-        .message.success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .message.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .google-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            background-color: #ffffff;
-            border: 1px solid #dadce0;
-            color: #3c4043;
-            font-weight: 500;
-            padding: 10px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .google-btn:hover {
             background-color: #f8f9fa;
+            overflow-x: hidden;
+        }
+
+        html, body, #root {
+            width: 100%;
+            height: 100%;
+        }
+
+        .gradient-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .gradient-hover:hover {
+            background: linear-gradient(135deg, #5568d3 0%, #6a3d8a 100%);
+        }
+
+        .transition-all {
+            transition: all 0.3s ease;
+        }
+
+        .shadow-lg-custom {
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Responsive utilities */
+        @media (max-width: 768px) {
+            .sidebar-responsive {
+                position: fixed;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 40;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar-responsive.active {
+                transform: translateX(0);
+            }
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .loading-spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
-<body class="flex h-screen overflow-hidden">
-
-    <!-- Auth Modal -->
-    <div id="authModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
-        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md mx-4">
-            <h2 class="text-3xl font-bold text-center text-purple-700 mb-2">منصة المحاسبين</h2>
-            <p class="text-center text-gray-600 mb-8">شبكة تواصل احترافية للمحاسبين والخبراء الماليين</p>
-
-            <div id="authMessage" class="mb-4"></div>
-
-            <!-- Login Form -->
-            <div id="loginForm">
-                <h3 class="text-xl font-semibold text-gray-800 mb-4">تسجيل الدخول</h3>
-                <div class="mb-4">
-                    <label for="loginEmail" class="block text-gray-700 text-sm font-bold mb-2">البريد الإلكتروني:</label>
-                    <input type="email" id="loginEmail" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="ادخل بريدك الإلكتروني">
-                </div>
-                <div class="mb-6">
-                    <label for="loginPassword" class="block text-gray-700 text-sm font-bold mb-2">كلمة المرور:</label>
-                    <input type="password" id="loginPassword" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="ادخل كلمة المرور">
-                </div>
-                <button onclick="handleLogin()" class="btn-primary text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full mb-4">دخول</button>
-                
-                <div class="relative mb-4">
-                    <div class="absolute inset-0 flex items-center">
-                        <div class="w-full border-t border-gray-300"></div>
-                    </div>
-                    <div class="relative flex justify-center text-sm">
-                        <span class="px-2 bg-white text-gray-500">أو</span>
-                    </div>
-                </div>
-
-                <button onclick="handleGoogleLogin()" class="google-btn w-full mb-4">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                    </svg>
-                    دخول عبر جوجل
-                </button>
-
-                <p class="text-center text-gray-600 text-sm mt-4">
-                    ليس لديك حساب؟ <a href="#" onclick="toggleForms(); return false;" class="text-purple-600 hover:text-purple-800 font-bold">إنشاء حساب جديد</a>
-                </p>
-            </div>
-
-            <!-- Register Form -->
-            <div id="registerForm" class="hidden">
-                <h3 class="text-xl font-semibold text-gray-800 mb-4">إنشاء حساب جديد</h3>
-                <div class="mb-4">
-                    <label for="registerEmail" class="block text-gray-700 text-sm font-bold mb-2">البريد الإلكتروني:</label>
-                    <input type="email" id="registerEmail" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="ادخل بريدك الإلكتروني">
-                </div>
-                <div class="mb-4">
-                    <label for="registerPassword" class="block text-gray-700 text-sm font-bold mb-2">كلمة المرور:</label>
-                    <input type="password" id="registerPassword" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="اختر كلمة مرور قوية (6 أحرف على الأقل)">
-                </div>
-                <div class="mb-6">
-                    <label for="registerFullName" class="block text-gray-700 text-sm font-bold mb-2">الاسم الكامل:</label>
-                    <input type="text" id="registerFullName" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="ادخل اسمك الكامل">
-                </div>
-                <button onclick="handleRegister()" class="btn-primary text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">إنشاء الحساب</button>
-                <p class="text-center text-gray-600 text-sm mt-4">
-                    لديك حساب بالفعل؟ <a href="#" onclick="toggleForms(); return false;" class="text-purple-600 hover:text-purple-800 font-bold">تسجيل الدخول</a>
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Layout -->
-    <div class="flex flex-1">
-        <!-- Sidebar -->
-        <aside class="sidebar bg-white shadow-lg p-6 flex flex-col justify-between overflow-y-auto">
-            <div>
-                <div class="flex items-center mb-8">
-                    <i class="mdi mdi-finance text-purple-700 text-4xl"></i>
-                    <h1 class="text-3xl font-bold text-purple-700 mr-3">محاسبون</h1>
-                </div>
-
-                <!-- User Profile Card -->
-                <div id="sidebarProfileCard" class="profile-card rounded-lg p-4 text-white mb-8 hidden">
-                    <div class="flex items-center mb-3">
-                        <img src="https://via.placeholder.com/40/667eea/ffffff?text=U" alt="User Avatar" class="rounded-full w-10 h-10 border-2 border-white ml-3">
-                        <div>
-                            <h3 id="sidebarUserName" class="font-bold text-lg"></h3>
-                            <p id="sidebarUserEmail" class="text-sm opacity-80"></p>
-                        </div>
-                    </div>
-                    <button onclick="handleLogout()" class="btn-outline bg-white text-purple-700 hover:bg-purple-700 hover:text-white text-sm py-1 px-3 rounded-full w-full">تسجيل الخروج</button>
-                </div>
-
-                <!-- Navigation -->
-                <nav class="mb-8">
-                    <ul>
-                        <li class="mb-3"><a href="#" onclick="filterByCategory(''); return false;" class="flex items-center text-gray-700 hover:text-purple-700 font-semibold text-lg"><i class="mdi mdi-home-variant ml-3 text-2xl"></i>الرئيسية</a></li>
-                        <li class="mb-3"><a href="#" class="flex items-center text-gray-700 hover:text-purple-700 font-semibold text-lg"><i class="mdi mdi-account-group ml-3 text-2xl"></i>المحاسبون</a></li>
-                        <li class="mb-3"><a href="#" class="flex items-center text-gray-700 hover:text-purple-700 font-semibold text-lg"><i class="mdi mdi-briefcase-variant ml-3 text-2xl"></i>الوظائف</a></li>
-                        <li class="mb-3"><a href="#" class="flex items-center text-gray-700 hover:text-purple-700 font-semibold text-lg"><i class="mdi mdi-message-text ml-3 text-2xl"></i>الرسائل</a></li>
-                        <li class="mb-3"><a href="#" class="flex items-center text-gray-700 hover:text-purple-700 font-semibold text-lg"><i class="mdi mdi-cog ml-3 text-2xl"></i>الإعدادات</a></li>
-                    </ul>
-                </nav>
-
-                <!-- Categories -->
-                <div>
-                    <h3 class="text-gray-500 font-bold text-sm mb-4">الأقسام</h3>
-                    <ul id="categoriesList">
-                        <li class="mb-2"><a href="#" onclick="filterByCategory('محاسبة مالية'); return false;" class="category-item flex items-center p-2 rounded-lg text-gray-700"><i class="mdi mdi-chart-bar ml-2"></i>محاسبة مالية</a></li>
-                        <li class="mb-2"><a href="#" onclick="filterByCategory('ضرائب'); return false;" class="category-item flex items-center p-2 rounded-lg text-gray-700"><i class="mdi mdi-file-document-outline ml-2"></i>ضرائب</a></li>
-                        <li class="mb-2"><a href="#" onclick="filterByCategory('تدقيق'); return false;" class="category-item flex items-center p-2 rounded-lg text-gray-700"><i class="mdi mdi-magnify ml-2"></i>تدقيق</a></li>
-                        <li class="mb-2"><a href="#" onclick="filterByCategory('محاسبة تكاليف'); return false;" class="category-item flex items-center p-2 rounded-lg text-gray-700"><i class="mdi mdi-calculator ml-2"></i>محاسبة تكاليف</a></li>
-                        <li class="mb-2"><a href="#" onclick="filterByCategory('نصائح مهنية'); return false;" class="category-item flex items-center p-2 rounded-lg text-gray-700"><i class="mdi mdi-lightbulb-on-outline ml-2"></i>نصائح مهنية</a></li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="text-center text-gray-400 text-xs mt-8">
-                &copy; 2026 منصة المحاسبين. جميع الحقوق محفوظة.
-            </div>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="flex-1 overflow-y-auto p-6">
-            <!-- Post Creation -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6" id="postCreationSection" style="display: none;">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">إنشاء منشور جديد</h2>
-                <div id="feedMessage" class="mb-4"></div>
-                <div class="mb-4">
-                    <label for="postCategory" class="block text-gray-700 text-sm font-bold mb-2">الفئة:</label>
-                    <select id="postCategory" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500">
-                        <option value="محاسبة مالية">محاسبة مالية</option>
-                        <option value="ضرائب">ضرائب</option>
-                        <option value="تدقيق">تدقيق</option>
-                        <option value="محاسبة تكاليف">محاسبة تكاليف</option>
-                        <option value="نصائح مهنية">نصائح مهنية</option>
-                    </select>
-                </div>
-                <textarea id="postContent" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 mb-4" rows="4" placeholder="ما الذي تود مشاركته مع المحاسبين اليوم؟"></textarea>
-                <button onclick="handleCreatePost()" class="btn-primary text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">نشر المنشور</button>
-            </div>
-
-            <!-- Posts Feed -->
-            <div id="postsList" class="space-y-6">
-                <!-- Posts will be loaded here -->
-                <div class="text-center text-gray-500 p-10">جاري تحميل المنشورات...</div>
-            </div>
-        </main>
-    </div>
+<body>
+    <div id="root"></div>
 
     <script>
-        const SUPABASE_URL = 'https://qfofvlypuzqjyzvjyzvj.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmb2Z2bHlwdXpxanl6dmp5enZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTYxNjY0MDAsImV4cCI6MTgzMTc1ODQwMH0.your_anon_key_here';
+        // ============ CONFIGURATION ============
+        const CONFIG = {
+            SUPABASE_URL: 'https://qfofvlypuzqjyzvjyzvj.supabase.co',
+            SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmb2Z2bHlwdXpxanl6dmp5enZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTYxNjY0MDAsImV4cCI6MTgzMTc1ODQwMH0.your_anon_key_here'
+        };
 
-        const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // ============ STATE MANAGEMENT ============
+        const state = {
+            currentUser: null,
+            currentPage: 'auth',
+            currentCategory: '',
+            posts: [],
+            categories: [
+                { id: 1, name: 'محاسبة مالية', icon: 'mdi-chart-bar' },
+                { id: 2, name: 'ضرائب', icon: 'mdi-file-document-outline' },
+                { id: 3, name: 'تدقيق', icon: 'mdi-magnify' },
+                { id: 4, name: 'محاسبة تكاليف', icon: 'mdi-calculator' },
+                { id: 5, name: 'نصائح مهنية', icon: 'mdi-lightbulb-on-outline' }
+            ]
+        };
 
-        let currentUser = null;
-        let currentCategory = '';
+        // ============ SUPABASE INITIALIZATION ============
+        const supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 
-        document.addEventListener('DOMContentLoaded', () => {
-            checkAuth();
-            loadPosts();
-        });
+        // ============ UTILITY FUNCTIONS ============
+        function showMessage(message, type = 'success') {
+            const messageEl = document.createElement('div');
+            messageEl.className = `fixed top-4 right-4 z-50 p-4 rounded-lg text-white font-semibold fade-in ${
+                type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            }`;
+            messageEl.textContent = message;
+            document.body.appendChild(messageEl);
+            setTimeout(() => messageEl.remove(), 3000);
+        }
 
-        async function checkAuth() {
-            try {
-                const { data: { user } } = await supabase.auth.getUser();
-                if (user) {
-                    currentUser = user;
-                    document.getElementById('authModal').classList.add('hidden');
-                    document.getElementById('sidebarProfileCard').classList.remove('hidden');
-                    document.getElementById('postCreationSection').style.display = 'block';
-                    document.getElementById('sidebarUserName').textContent = currentUser.user_metadata?.full_name || currentUser.email;
-                    document.getElementById('sidebarUserEmail').textContent = currentUser.email;
-                } else {
-                    document.getElementById('authModal').classList.remove('hidden');
-                    document.getElementById('postCreationSection').style.display = 'none';
-                }
-            } catch (error) {
-                console.error('خطأ في التحقق من المستخدم:', error);
+        function showLoading(show = true) {
+            const loader = document.getElementById('loader');
+            if (loader) {
+                loader.style.display = show ? 'flex' : 'none';
             }
         }
 
-        function toggleForms() {
-            document.getElementById('loginForm').classList.toggle('hidden');
-            document.getElementById('registerForm').classList.toggle('hidden');
-            document.getElementById('authMessage').innerHTML = '';
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ar-EG', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
         }
 
-        async function handleRegister() {
-            const email = document.getElementById('registerEmail').value.trim();
-            const password = document.getElementById('registerPassword').value;
-            const fullName = document.getElementById('registerFullName').value.trim();
-
+        // ============ AUTHENTICATION FUNCTIONS ============
+        async function handleRegister(email, password, fullName) {
             if (!email || !password || !fullName) {
-                showMessage('authMessage', 'يرجى ملء جميع الحقول', 'error');
-                return;
-            }
-            if (password.length < 6) {
-                showMessage('authMessage', 'كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'error');
+                showMessage('يرجى ملء جميع الحقول', 'error');
                 return;
             }
 
+            if (password.length < 6) {
+                showMessage('كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'error');
+                return;
+            }
+
+            showLoading(true);
             try {
                 const { data, error } = await supabase.auth.signUp({
                     email: email,
                     password: password,
                     options: {
-                        data: {
-                            full_name: fullName,
-                        }
+                        data: { full_name: fullName }
                     }
                 });
 
                 if (error) {
-                    showMessage('authMessage', error.message, 'error');
-                } else if (data.user) {
-                    showMessage('authMessage', 'تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني لتأكيد الحساب.', 'success');
+                    showMessage(error.message, 'error');
+                } else {
+                    showMessage('تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني', 'success');
                     setTimeout(() => {
                         document.getElementById('registerForm').classList.add('hidden');
                         document.getElementById('loginForm').classList.remove('hidden');
                     }, 2000);
                 }
             } catch (error) {
-                showMessage('authMessage', 'حدث خطأ: ' + error.message, 'error');
+                showMessage('حدث خطأ: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
             }
         }
 
-        async function handleLogin() {
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value;
-
+        async function handleLogin(email, password) {
             if (!email || !password) {
-                showMessage('authMessage', 'يرجى إدخال البريد وكلمة المرور', 'error');
+                showMessage('يرجى إدخال البريد وكلمة المرور', 'error');
                 return;
             }
 
+            showLoading(true);
             try {
                 const { data, error } = await supabase.auth.signInWithPassword({
                     email: email,
-                    password: password,
+                    password: password
                 });
 
                 if (error) {
-                    showMessage('authMessage', error.message, 'error');
+                    showMessage(error.message, 'error');
                 } else if (data.user) {
-                    currentUser = data.user;
-                    document.getElementById('authModal').classList.add('hidden');
-                    document.getElementById('sidebarProfileCard').classList.remove('hidden');
-                    document.getElementById('postCreationSection').style.display = 'block';
-                    document.getElementById('sidebarUserName').textContent = currentUser.user_metadata?.full_name || currentUser.email;
-                    document.getElementById('sidebarUserEmail').textContent = currentUser.email;
-                    document.getElementById('loginEmail').value = '';
-                    document.getElementById('loginPassword').value = '';
+                    state.currentUser = data.user;
+                    state.currentPage = 'dashboard';
+                    showMessage('تم تسجيل الدخول بنجاح!', 'success');
+                    render();
                     loadPosts();
                 }
             } catch (error) {
-                showMessage('authMessage', 'حدث خطأ: ' + error.message, 'error');
-            }
-        }
-
-        async function handleGoogleLogin() {
-            try {
-                const { data, error } = await supabase.auth.signInWithOAuth({
-                    provider: 'google',
-                    options: {
-                        redirectTo: window.location.origin
-                    }
-                });
-
-                if (error) {
-                    showMessage('authMessage', 'خطأ في تسجيل الدخول عبر جوجل: ' + error.message, 'error');
-                }
-            } catch (error) {
-                showMessage('authMessage', 'حدث خطأ: ' + error.message, 'error');
+                showMessage('حدث خطأ: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
             }
         }
 
         async function handleLogout() {
+            showLoading(true);
             try {
-                const { error } = await supabase.auth.signOut();
-                if (!error) {
-                    currentUser = null;
-                    document.getElementById('authModal').classList.remove('hidden');
-                    document.getElementById('sidebarProfileCard').classList.add('hidden');
-                    document.getElementById('postCreationSection').style.display = 'none';
-                    document.getElementById('loginForm').classList.remove('hidden');
-                    document.getElementById('registerForm').classList.add('hidden');
-                    document.getElementById('postsList').innerHTML = '<div class="text-center text-gray-500 p-10">جاري تحميل المنشورات...</div>';
-                    currentCategory = '';
-                }
+                await supabase.auth.signOut();
+                state.currentUser = null;
+                state.currentPage = 'auth';
+                state.currentCategory = '';
+                state.posts = [];
+                showMessage('تم تسجيل الخروج بنجاح', 'success');
+                render();
             } catch (error) {
-                console.error('خطأ في تسجيل الخروج:', error);
+                showMessage('خطأ في تسجيل الخروج', 'error');
+            } finally {
+                showLoading(false);
             }
         }
 
-        async function handleCreatePost() {
-            if (!currentUser) {
-                showMessage('feedMessage', 'يرجى تسجيل الدخول أولاً لنشر منشور', 'error');
-                return;
-            }
-
-            const content = document.getElementById('postContent').value.trim();
-            const category = document.getElementById('postCategory').value;
-            
-            if (!content) {
-                showMessage('feedMessage', 'لا يمكن نشر منشور فارغ', 'error');
-                return;
-            }
-
+        async function checkAuth() {
             try {
-                const { data, error } = await supabase.from('posts').insert([
-                    {
-                        user_id: currentUser.id,
-                        author_name: currentUser.user_metadata?.full_name || currentUser.email,
-                        content: content,
-                        category: category,
-                        created_at: new Date().toISOString()
-                    }
-                ]);
-
-                if (error) {
-                    showMessage('feedMessage', 'خطأ: ' + error.message, 'error');
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    state.currentUser = user;
+                    state.currentPage = 'dashboard';
                 } else {
-                    document.getElementById('postContent').value = '';
-                    showMessage('feedMessage', 'تم نشر المنشور بنجاح!', 'success');
-                    loadPosts();
+                    state.currentPage = 'auth';
                 }
             } catch (error) {
-                showMessage('feedMessage', 'حدث خطأ: ' + error.message, 'error');
+                console.error('Auth check error:', error);
             }
+            render();
         }
 
+        // ============ POST FUNCTIONS ============
         async function loadPosts() {
+            showLoading(true);
             try {
                 let query = supabase.from('posts').select('*');
                 
-                if (currentCategory) {
-                    query = query.eq('category', currentCategory);
+                if (state.currentCategory) {
+                    query = query.eq('category', state.currentCategory);
                 }
-                
-                const { data: posts, error } = await query.order('created_at', { ascending: false });
 
-                const postsList = document.getElementById('postsList');
+                const { data, error } = await query.order('created_at', { ascending: false });
+
                 if (error) {
-                    postsList.innerHTML = `<div class="message error">خطأ في تحميل المنشورات: ${error.message}</div>`;
-                    return;
+                    showMessage('خطأ في تحميل المنشورات', 'error');
+                    state.posts = [];
+                } else {
+                    state.posts = data || [];
                 }
-
-                if (!posts || posts.length === 0) {
-                    postsList.innerHTML = '<div class="text-center text-gray-500 p-10">لا توجد منشورات حتى الآن. كن أول من ينشر!</div>';
-                    return;
-                }
-
-                postsList.innerHTML = posts.map(post => `
-                    <div class="bg-white rounded-lg shadow-md p-6 post-card">
-                        <div class="flex items-center justify-between mb-4">
-                            <div>
-                                <h3 class="font-bold text-gray-800">${post.author_name || 'مستخدم'}</h3>
-                                <p class="text-sm text-gray-500">${new Date(post.created_at).toLocaleDateString('ar-EG')}</p>
-                            </div>
-                            <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-semibold">${post.category || 'عام'}</span>
-                        </div>
-                        <p class="text-gray-700 mb-4">${post.content}</p>
-                        <div class="flex gap-4 pt-4 border-t border-gray-200">
-                            <button onclick="toggleLike(${post.id})" class="flex items-center gap-2 text-gray-600 hover:text-purple-700">
-                                <i class="mdi mdi-heart-outline"></i>
-                                <span id="likes-${post.id}">${post.likes || 0}</span>
-                            </button>
-                            <button class="flex items-center gap-2 text-gray-600 hover:text-purple-700">
-                                <i class="mdi mdi-comment-outline"></i>
-                                <span>تعليق</span>
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
             } catch (error) {
-                console.error('خطأ في تحميل المنشورات:', error);
-                document.getElementById('postsList').innerHTML = '<div class="message error">حدث خطأ في تحميل المنشورات</div>';
+                showMessage('خطأ: ' + error.message, 'error');
+                state.posts = [];
+            } finally {
+                showLoading(false);
+                render();
+            }
+        }
+
+        async function createPost(content, category) {
+            if (!content.trim()) {
+                showMessage('لا يمكن نشر منشور فارغ', 'error');
+                return;
+            }
+
+            if (!state.currentUser) {
+                showMessage('يرجى تسجيل الدخول أولاً', 'error');
+                return;
+            }
+
+            showLoading(true);
+            try {
+                const { data, error } = await supabase.from('posts').insert([{
+                    user_id: state.currentUser.id,
+                    author_name: state.currentUser.user_metadata?.full_name || state.currentUser.email,
+                    author_email: state.currentUser.email,
+                    content: content.trim(),
+                    category: category,
+                    created_at: new Date().toISOString(),
+                    likes: 0
+                }]);
+
+                if (error) {
+                    showMessage('خطأ في نشر المنشور: ' + error.message, 'error');
+                } else {
+                    showMessage('تم نشر المنشور بنجاح!', 'success');
+                    document.getElementById('postContent').value = '';
+                    loadPosts();
+                }
+            } catch (error) {
+                showMessage('خطأ: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
             }
         }
 
         async function toggleLike(postId) {
-            if (!currentUser) {
-                showMessage('feedMessage', 'يرجى تسجيل الدخول أولاً', 'error');
+            if (!state.currentUser) {
+                showMessage('يرجى تسجيل الدخول أولاً', 'error');
                 return;
             }
 
             try {
-                const { data: post } = await supabase.from('posts').select('likes').eq('id', postId).single();
-                const newLikes = (post?.likes || 0) + 1;
-                
+                const post = state.posts.find(p => p.id === postId);
+                if (!post) return;
+
+                const newLikes = (post.likes || 0) + 1;
                 const { error } = await supabase.from('posts').update({ likes: newLikes }).eq('id', postId);
-                
+
                 if (!error) {
-                    document.getElementById(`likes-${postId}`).textContent = newLikes;
+                    post.likes = newLikes;
+                    render();
                 }
             } catch (error) {
-                console.error('خطأ في إضافة الإعجاب:', error);
+                showMessage('خطأ: ' + error.message, 'error');
             }
         }
 
-        function filterByCategory(category) {
-            currentCategory = category;
+        function filterByCategory(categoryName) {
+            state.currentCategory = categoryName;
             loadPosts();
-            
-            // Update active category styling
-            document.querySelectorAll('.category-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            if (category) {
-                event.target.closest('.category-item').classList.add('active');
-            }
         }
 
-        function showMessage(elementId, message, type) {
-            const element = document.getElementById(elementId);
-            element.innerHTML = `<div class="message ${type}">${message}</div>`;
-            if (type === 'success') {
-                setTimeout(() => {
-                    element.innerHTML = '';
-                }, 3000);
-            }
+        // ============ RENDER FUNCTIONS ============
+        function renderAuthPage() {
+            return `
+                <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50 p-4">
+                    <div class="w-full max-w-md">
+                        <!-- Logo Section -->
+                        <div class="text-center mb-8">
+                            <div class="flex justify-center mb-4">
+                                <div class="w-16 h-16 gradient-primary rounded-full flex items-center justify-center text-white text-3xl">
+                                    <i class="mdi mdi-finance"></i>
+                                </div>
+                            </div>
+                            <h1 class="text-4xl font-bold text-gray-800 mb-2">منصة المحاسبين</h1>
+                            <p class="text-gray-600">شبكة تواصل احترافية للمحاسبين والخبراء الماليين</p>
+                        </div>
+
+                        <!-- Auth Card -->
+                        <div class="bg-white rounded-2xl shadow-lg-custom p-8">
+                            <!-- Login Form -->
+                            <div id="loginForm">
+                                <h2 class="text-2xl font-bold text-gray-800 mb-6">تسجيل الدخول</h2>
+                                <div class="space-y-4 mb-6">
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">البريد الإلكتروني</label>
+                                        <input type="email" id="loginEmail" placeholder="أدخل بريدك الإلكتروني" 
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">كلمة المرور</label>
+                                        <input type="password" id="loginPassword" placeholder="أدخل كلمة المرور" 
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                                    </div>
+                                </div>
+                                <button onclick="handleLoginClick()" 
+                                    class="w-full gradient-primary gradient-hover text-white font-bold py-3 rounded-lg transition-all mb-4">
+                                    دخول
+                                </button>
+                                <p class="text-center text-gray-600">
+                                    ليس لديك حساب؟ 
+                                    <a href="#" onclick="toggleAuthForms(); return false;" class="text-purple-600 font-bold hover:text-purple-700">
+                                        إنشاء حساب جديد
+                                    </a>
+                                </p>
+                            </div>
+
+                            <!-- Register Form -->
+                            <div id="registerForm" class="hidden">
+                                <h2 class="text-2xl font-bold text-gray-800 mb-6">إنشاء حساب جديد</h2>
+                                <div class="space-y-4 mb-6">
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">الاسم الكامل</label>
+                                        <input type="text" id="registerFullName" placeholder="أدخل اسمك الكامل" 
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">البريد الإلكتروني</label>
+                                        <input type="email" id="registerEmail" placeholder="أدخل بريدك الإلكتروني" 
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">كلمة المرور</label>
+                                        <input type="password" id="registerPassword" placeholder="اختر كلمة مرور قوية (6 أحرف على الأقل)" 
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                                    </div>
+                                </div>
+                                <button onclick="handleRegisterClick()" 
+                                    class="w-full gradient-primary gradient-hover text-white font-bold py-3 rounded-lg transition-all mb-4">
+                                    إنشاء الحساب
+                                </button>
+                                <p class="text-center text-gray-600">
+                                    لديك حساب بالفعل؟ 
+                                    <a href="#" onclick="toggleAuthForms(); return false;" class="text-purple-600 font-bold hover:text-purple-700">
+                                        تسجيل الدخول
+                                    </a>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <p class="text-center text-gray-500 text-sm mt-8">
+                            &copy; 2026 منصة المحاسبين. جميع الحقوق محفوظة.
+                        </p>
+                    </div>
+                </div>
+            `;
         }
+
+        function renderDashboard() {
+            return `
+                <div class="flex h-screen bg-gray-50 overflow-hidden">
+                    <!-- Mobile Menu Button -->
+                    <button onclick="toggleMobileMenu()" class="md:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg">
+                        <i class="mdi mdi-menu text-2xl text-gray-800"></i>
+                    </button>
+
+                    <!-- Sidebar -->
+                    <aside class="sidebar-responsive md:relative md:w-64 bg-white shadow-lg flex flex-col overflow-y-auto md:overflow-y-auto">
+                        <div class="p-6 border-b border-gray-200">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="w-12 h-12 gradient-primary rounded-full flex items-center justify-center text-white text-xl">
+                                    <i class="mdi mdi-finance"></i>
+                                </div>
+                                <h1 class="text-2xl font-bold text-gray-800">محاسبون</h1>
+                            </div>
+                        </div>
+
+                        <!-- User Profile -->
+                        <div class="p-6 border-b border-gray-200">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                                    <i class="mdi mdi-account text-purple-600 text-xl"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-semibold text-gray-800 truncate">${state.currentUser.user_metadata?.full_name || state.currentUser.email}</p>
+                                    <p class="text-sm text-gray-500 truncate">${state.currentUser.email}</p>
+                                </div>
+                            </div>
+                            <button onclick="handleLogout()" class="w-full bg-red-50 text-red-600 font-semibold py-2 rounded-lg hover:bg-red-100 transition-all">
+                                تسجيل الخروج
+                            </button>
+                        </div>
+
+                        <!-- Navigation -->
+                        <nav class="p-6 border-b border-gray-200">
+                            <ul class="space-y-2">
+                                <li><a href="#" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 hover:bg-purple-50 transition-all"><i class="mdi mdi-home-variant text-xl"></i>الرئيسية</a></li>
+                                <li><a href="#" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 hover:bg-purple-50 transition-all"><i class="mdi mdi-account-group text-xl"></i>المحاسبون</a></li>
+                                <li><a href="#" class="flex items-center gap-3 p-3 rounded-lg text-gray-700 hover:bg-purple-50 transition-all"><i class="mdi mdi-briefcase text-xl"></i>الوظائف</a></li>
+                            </ul>
+                        </nav>
+
+                        <!-- Categories -->
+                        <div class="p-6 flex-1 overflow-y-auto scrollbar-hide">
+                            <h3 class="text-sm font-bold text-gray-500 mb-4 uppercase">الأقسام</h3>
+                            <ul class="space-y-2">
+                                <li>
+                                    <button onclick="filterByCategory('')" class="w-full text-right flex items-center gap-3 p-3 rounded-lg text-gray-700 hover:bg-purple-50 transition-all ${!state.currentCategory ? 'bg-purple-100 text-purple-600' : ''}">
+                                        <i class="mdi mdi-star text-xl"></i>
+                                        <span>الكل</span>
+                                    </button>
+                                </li>
+                                ${state.categories.map(cat => `
+                                    <li>
+                                        <button onclick="filterByCategory('${cat.name}')" class="w-full text-right flex items-center gap-3 p-3 rounded-lg text-gray-700 hover:bg-purple-50 transition-all ${state.currentCategory === cat.name ? 'bg-purple-100 text-purple-600' : ''}">
+                                            <i class="mdi ${cat.icon} text-xl"></i>
+                                            <span>${cat.name}</span>
+                                        </button>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="p-6 border-t border-gray-200 text-center text-xs text-gray-500">
+                            &copy; 2026 منصة المحاسبين
+                        </div>
+                    </aside>
+
+                    <!-- Main Content -->
+                    <main class="flex-1 overflow-y-auto">
+                        <div class="max-w-2xl mx-auto p-4 md:p-6 space-y-6">
+                            <!-- Create Post -->
+                            <div class="bg-white rounded-xl shadow-md p-6">
+                                <h2 class="text-xl font-bold text-gray-800 mb-4">إنشاء منشور جديد</h2>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">الفئة</label>
+                                        <select id="postCategory" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                            ${state.categories.map(cat => `<option value="${cat.name}">${cat.name}</option>`).join('')}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">المحتوى</label>
+                                        <textarea id="postContent" placeholder="ما الذي تود مشاركته مع المحاسبين؟" 
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none" 
+                                            rows="4"></textarea>
+                                    </div>
+                                    <button onclick="handleCreatePostClick()" 
+                                        class="w-full gradient-primary gradient-hover text-white font-bold py-3 rounded-lg transition-all">
+                                        نشر المنشور
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Posts Feed -->
+                            <div class="space-y-4">
+                                ${state.posts.length === 0 ? `
+                                    <div class="bg-white rounded-xl shadow-md p-12 text-center">
+                                        <i class="mdi mdi-inbox text-6xl text-gray-300 mb-4"></i>
+                                        <p class="text-gray-500 text-lg">لا توجد منشورات حتى الآن. كن أول من ينشر!</p>
+                                    </div>
+                                ` : state.posts.map(post => `
+                                    <div class="bg-white rounded-xl shadow-md p-6 fade-in">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                                                    <i class="mdi mdi-account text-purple-600"></i>
+                                                </div>
+                                                <div>
+                                                    <p class="font-bold text-gray-800">${post.author_name}</p>
+                                                    <p class="text-xs text-gray-500">${formatDate(post.created_at)}</p>
+                                                </div>
+                                            </div>
+                                            <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-semibold">${post.category}</span>
+                                        </div>
+                                        <p class="text-gray-700 mb-4 leading-relaxed">${post.content}</p>
+                                        <div class="flex gap-4 pt-4 border-t border-gray-200">
+                                            <button onclick="toggleLike(${post.id})" class="flex items-center gap-2 text-gray-600 hover:text-red-500 transition-all">
+                                                <i class="mdi mdi-heart-outline text-xl"></i>
+                                                <span class="text-sm">${post.likes || 0}</span>
+                                            </button>
+                                            <button class="flex items-center gap-2 text-gray-600 hover:text-blue-500 transition-all">
+                                                <i class="mdi mdi-comment-outline text-xl"></i>
+                                                <span class="text-sm">تعليق</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            `;
+        }
+
+        function render() {
+            const root = document.getElementById('root');
+            root.innerHTML = state.currentPage === 'auth' ? renderAuthPage() : renderDashboard();
+        }
+
+        // ============ EVENT HANDLERS ============
+        function toggleAuthForms() {
+            document.getElementById('loginForm').classList.toggle('hidden');
+            document.getElementById('registerForm').classList.toggle('hidden');
+        }
+
+        function handleLoginClick() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            handleLogin(email, password);
+        }
+
+        function handleRegisterClick() {
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const fullName = document.getElementById('registerFullName').value;
+            handleRegister(email, password, fullName);
+        }
+
+        function handleCreatePostClick() {
+            const content = document.getElementById('postContent').value;
+            const category = document.getElementById('postCategory').value;
+            createPost(content, category);
+        }
+
+        function toggleMobileMenu() {
+            const sidebar = document.querySelector('.sidebar-responsive');
+            sidebar.classList.toggle('active');
+        }
+
+        // ============ INITIALIZATION ============
+        document.addEventListener('DOMContentLoaded', () => {
+            // Create loader
+            const loader = document.createElement('div');
+            loader.id = 'loader';
+            loader.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden';
+            loader.innerHTML = '<div class="loading-spinner"></div>';
+            document.body.appendChild(loader);
+
+            // Check auth and render
+            checkAuth();
+        });
+
+        // Handle Enter key in forms
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                if (state.currentPage === 'auth') {
+                    if (document.getElementById('loginForm').classList.contains('hidden')) {
+                        handleRegisterClick();
+                    } else {
+                        handleLoginClick();
+                    }
+                }
+            }
+        });
     </script>
 </body>
 </html>
